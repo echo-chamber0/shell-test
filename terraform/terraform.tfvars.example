@@ -1,0 +1,32 @@
+# Example Terraform Variables File
+# Copy this to terraform.tfvars and customize for your deployment
+# Or better yet, run: python ../setup.py
+
+# GCP Project Configuration
+project_id = "my-project-12345"
+
+# Cloud Run Service Configuration
+service_name = "nginx-demo"
+region       = "us-central1"
+
+# Access Configuration
+allow_unauthenticated = true
+
+# Container Configuration
+container_image = "gcr.io/cloudrun/hello"
+
+# Resource Limits (Optional - uncomment to customize)
+# cpu_limit    = "1000m"  # 1 vCPU
+# memory_limit = "256Mi"  # 256 MiB RAM
+
+# Available Regions:
+# - us-central1 (Iowa)
+# - us-east1 (South Carolina)
+# - us-east4 (Virginia)
+# - us-west1 (Oregon)
+# - europe-west1 (Belgium)
+# - europe-west4 (Netherlands)
+# - asia-east1 (Taiwan)
+# - asia-northeast1 (Tokyo)
+# - asia-southeast1 (Singapore)
+

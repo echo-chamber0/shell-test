@@ -1,123 +1,159 @@
 # Quick Start Guide
 
-## 🚀 Three Ways to Deploy
+## For Cloud Shell Users (Recommended) ☁️
 
-### 1. Interactive Tutorial (Recommended for Beginners)
+1. Click the "Open in Cloud Shell" button in README.md
+2. Wait for Cloud Shell to load
+3. The tutorial will open automatically
+4. Follow the interactive guide!
 
-Launch the step-by-step tutorial in Cloud Shell:
+## For Local Development 💻
 
-```bash
-cloudshell launch-tutorial tutorial.md
-```
+### Prerequisites
 
-This provides:
-- ✅ Guided walkthrough
-- ✅ Embedded commands
-- ✅ Visual progress tracking
-- ✅ Best for learning
+- GCP Project with billing enabled
+- `gcloud` CLI installed and authenticated
+- `terraform` >= 1.5.0 installed
+- `python` >= 3.9 installed
+- Required IAM roles: `roles/run.admin`, `roles/iam.serviceAccountUser`
 
-### 2. Interactive Script (Fastest)
-
-Run the automated setup script:
-
-```bash
-./setup.sh
-```
-
-This provides:
-- ✅ Beautiful terminal UI
-- ✅ Input validation
-- ✅ Configuration summary
-- ✅ One-command deployment
-- ✅ Best for quick deployments
-
-### 3. Manual Terraform (For Experts)
-
-Direct Terraform commands:
+### Quick Commands
 
 ```bash
-# 1. Initialize
+# 1. Clone repository
+git clone <your-repo-url>
+cd <repo-name>
+
+# 2. Run interactive setup
+python setup.py
+
+# 3. Deploy infrastructure
+cd terraform
 terraform init
-
-# 2. Configure
-cat > terraform.tfvars <<EOF
-project_id              = "your-gcp-project"
-region                  = "us-central1"
-service_name            = "nginx-demo"
-allow_unauthenticated   = true
-EOF
-
-# 3. Deploy
-terraform plan
 terraform apply
+
+# 4. Get service URL
+terraform output service_url
+
+# 5. Test service
+curl $(terraform output -raw service_url)
+
+# 6. Cleanup (when done)
+cd ..
+./cleanup.sh
 ```
 
-This provides:
-- ✅ Full control
-- ✅ No interactive prompts
-- ✅ Best for automation
+## Alternative: One-Command Deploy
 
-## 📋 Prerequisites
-
-- Google Cloud Project
-- Required APIs (enabled automatically):
-  - Cloud Run API
-  - Artifact Registry API
-- Sufficient permissions:
-  - `roles/run.admin`
-  - `roles/iam.serviceAccountUser`
-
-## 🎯 What You'll Get
-
-After deployment:
-- ✅ Cloud Run service running nginx
-- ✅ Public URL (if enabled)
-- ✅ Auto-scaling configuration
-- ✅ Resource limits (CPU/Memory)
-
-## ⏱️ Estimated Time
-
-- Interactive Tutorial: ~5 minutes
-- Interactive Script: ~3 minutes
-- Manual Terraform: ~2 minutes
-
-## 🆘 Need Help?
-
-Check these resources:
-- Full documentation: `cat README.md`
-- Tutorial: `cloudshell launch-tutorial tutorial.md`
-- Terraform docs: `terraform -help`
-
-## 📞 Troubleshooting
-
-**Issue: Permission denied on setup.sh**
 ```bash
-chmod +x setup.sh
+./deploy.sh
 ```
 
-**Issue: APIs not enabled**
-```bash
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com
-```
+This script:
+- Runs interactive setup (if needed)
+- Initializes Terraform
+- Shows plan
+- Deploys infrastructure
+- Displays service URL
 
-**Issue: Wrong project selected**
+## Troubleshooting
+
+### Error: "gcloud not authenticated"
+
 ```bash
+gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 ```
 
-## 🧹 Cleanup
+### Error: "API not enabled"
 
-When finished:
 ```bash
-terraform destroy
+gcloud services enable run.googleapis.com
 ```
 
-Or interactively:
+### Error: "Permission denied"
+
 ```bash
-./setup.sh  # Will offer cleanup option
+# Grant yourself Cloud Run Admin role
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="user:YOUR_EMAIL@example.com" \
+  --role="roles/run.admin"
 ```
+
+### Error: "Terraform not found"
+
+**macOS:**
+```bash
+brew install terraform
+```
+
+**Linux:**
+```bash
+wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+unzip terraform_1.5.0_linux_amd64.zip
+sudo mv terraform /usr/local/bin/
+```
+
+## What Gets Deployed?
+
+- **1x Cloud Run Service** - Serverless nginx container
+- **1x IAM Binding** - Public access (if enabled)
+- **Total Cost:** ~$0.00/month (free tier eligible)
+
+## Configuration Options
+
+Edit `terraform/terraform.tfvars` after running setup:
+
+```hcl
+# Change region
+region = "europe-west1"
+
+# Change CPU/Memory
+cpu_limit = "2000m"
+memory_limit = "512Mi"
+
+# Use custom image
+container_image = "your-registry/your-image:tag"
+```
+
+Then run `terraform apply` to update.
+
+## Project Structure
+
+```
+.
+├── README.md              # Full documentation
+├── QUICKSTART.md          # This file
+├── tutorial.md            # Cloud Shell tutorial
+├── setup.py               # Interactive configuration
+├── deploy.sh              # One-command deploy
+├── cleanup.sh             # Resource cleanup
+├── requirements.txt       # Python deps
+└── terraform/
+    ├── main.tf            # Infrastructure code
+    ├── variables.tf       # Input variables
+    ├── outputs.tf         # Output values
+    └── terraform.tfvars   # Your config (gitignored)
+```
+
+## Next Steps
+
+After successful deployment:
+
+1. **View in Console:** https://console.cloud.google.com/run
+2. **Check Logs:** `gcloud logging read "resource.type=cloud_run_revision" --limit=50`
+3. **Update Service:** Modify terraform files, run `terraform apply`
+4. **Add Domain:** Follow [Cloud Run domain mapping](https://cloud.google.com/run/docs/mapping-custom-domains)
+5. **Setup CI/CD:** Integrate with Cloud Build
+
+## Resources
+
+- [Cloud Run Docs](https://cloud.google.com/run/docs)
+- [Terraform GCP Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
+- [Rich Library](https://rich.readthedocs.io/)
+- [Questionary Docs](https://questionary.readthedocs.io/)
 
 ---
 
-**Ready?** Choose your preferred method above and start deploying! 🚀
+**Need Help?** Open an issue on GitHub!
 

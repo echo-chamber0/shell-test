@@ -1,19 +1,26 @@
-# Terraform files
-*.tfstate
-*.tfstate.*
-.terraform/
-.terraform.lock.hcl
-terraform.tfvars
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Cloud Shell
-.cloudshell/
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+terraform/crash.log
+terraform/crash.*.log
 
-# User variables
-user-variables.sh
-
-# OS files
-.DS_Store
-Thumbs.db
+# Terraform variables (contains sensitive data)
+terraform/terraform.tfvars
 
 # IDE
 .vscode/
@@ -21,4 +28,11 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
 

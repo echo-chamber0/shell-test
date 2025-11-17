@@ -1,306 +1,134 @@
-# Contributing Guide
+# Contributing to Cloud Run Interactive Tutorial
 
-Thank you for your interest in contributing to this project! This guide will help you get started.
+Thank you for your interest in contributing! 🎉
 
-## 🚀 Quick Start for Contributors
+## How to Contribute
 
-1. **Fork the repository**
-2. **Clone your fork**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/shell-test.git
-   cd shell-test
-   ```
-3. **Create a branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-4. **Make your changes**
-5. **Test your changes** (see Testing section below)
-6. **Commit and push**
-   ```bash
-   git add .
-   git commit -m "Description of your changes"
-   git push origin feature/your-feature-name
-   ```
-7. **Open a Pull Request**
+### 1. Report Issues
 
-## 🧪 Testing Your Changes
+Found a bug or have a feature request?
+- Check if the issue already exists
+- Open a new issue with clear description
+- Include steps to reproduce (for bugs)
 
-### Test Terraform Configuration
+### 2. Suggest Improvements
 
-```bash
-# Format check
-terraform fmt -check -recursive
+Have ideas to make this better?
+- Open an issue with the "enhancement" label
+- Describe your proposal clearly
+- Explain the use case
 
-# Initialize
-terraform init
+### 3. Submit Pull Requests
 
-# Validate
-terraform validate
+Want to contribute code?
 
-# Plan (requires valid GCP project)
-terraform plan
-```
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Test thoroughly (see Testing section)
+5. Commit with clear messages: `git commit -m 'Add amazing feature'`
+6. Push to your fork: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
-### Test Setup Script
-
-```bash
-# Make executable
-chmod +x setup.sh
-
-# Run in dry-run mode (add this feature if needed)
-./setup.sh
-```
-
-### Test Tutorial
-
-```bash
-# In Cloud Shell
-cloudshell launch-tutorial tutorial.md
-
-# Review all steps for accuracy
-```
-
-## 📝 Contribution Guidelines
+## Development Guidelines
 
 ### Code Style
 
-**Terraform**
-- Follow [HashiCorp's style guide](https://www.terraform.io/docs/language/syntax/style.html)
-- Use `terraform fmt` before committing
+**Python:**
+- Follow PEP 8
+- Use type hints where appropriate
+- Add docstrings for functions/classes
+- Keep functions focused and small
+
+**Terraform:**
+- Use consistent formatting (`terraform fmt`)
 - Add comments for complex logic
-- Use meaningful resource names
+- Include validation rules for variables
+- Document resources with descriptions
 
-**Bash Scripts**
-- Follow [Google's Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
-- Use shellcheck for validation
-- Add error handling (`set -e`)
-- Comment non-obvious sections
+**Shell Scripts:**
+- Use `set -e` for error handling
+- Add comments for clarity
+- Use colors for user feedback
+- Test on bash and zsh
 
-**Markdown**
-- Use proper heading hierarchy
-- Include code blocks with syntax highlighting
-- Add links to relevant documentation
-- Check spelling and grammar
+### Testing
 
-### Commit Messages
+Before submitting:
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+1. **Test Python Script:**
+   ```bash
+   python setup.py
+   ```
+   - Try valid and invalid inputs
+   - Test cancellation (Ctrl+C)
+   - Verify generated tfvars file
 
-```
-feat: add support for custom domains
-fix: resolve terraform state locking issue
-docs: update README with new examples
-style: format terraform files
-refactor: simplify setup script logic
-test: add validation for setup script
-chore: update dependencies
-```
+2. **Test Terraform:**
+   ```bash
+   cd terraform
+   terraform init
+   terraform validate
+   terraform fmt -check
+   terraform plan
+   ```
 
-### Pull Request Process
+3. **Test in Cloud Shell:**
+   - Push to your fork
+   - Test the "Open in Cloud Shell" link
+   - Follow tutorial end-to-end
 
-1. **Update documentation** if needed
-2. **Add/update tests** for new features
-3. **Ensure CI passes** (GitHub Actions)
-4. **Update CHANGELOG.md** with your changes
-5. **Request review** from maintainers
-6. **Address feedback** promptly
+### Documentation
 
-### What to Contribute
+- Update README.md for new features
+- Update tutorial.md for user-facing changes
+- Add comments in code for complex logic
+- Include examples for new functionality
 
-**Ideas for Contributions:**
-
-🎯 **Features**
-- Additional Cloud Run configuration options
-- Support for other container images
-- Custom domain setup
-- Cloud SQL integration
-- Secret Manager integration
-- VPC connector support
-- Multiple service deployment
-
-🐛 **Bug Fixes**
-- Fix any issues you encounter
-- Improve error handling
-- Edge case handling
-
-📚 **Documentation**
-- Improve README clarity
-- Add more examples
-- Translate to other languages
-- Add diagrams/screenshots
-- Video tutorials
-
-🧪 **Testing**
-- Add integration tests
-- Improve validation
-- Test on different environments
-
-🎨 **UI/UX**
-- Improve setup script interface
-- Better tutorial flow
-- More helpful error messages
-
-## 🔍 Code Review Checklist
-
-Before submitting, ensure:
-
-- [ ] Code follows project style guidelines
-- [ ] All tests pass
-- [ ] Documentation is updated
-- [ ] Commit messages are clear
-- [ ] No sensitive data (API keys, project IDs) in code
-- [ ] Terraform files are formatted (`terraform fmt`)
-- [ ] Scripts are shellcheck-clean
-- [ ] README examples work
-- [ ] Tutorial steps are accurate
-- [ ] No breaking changes (or clearly documented)
-
-## 🐛 Reporting Bugs
-
-### Before Reporting
-
-1. Search existing issues
-2. Try the latest version
-3. Check documentation
-
-### Bug Report Template
-
-```markdown
-**Description**
-A clear description of the bug.
-
-**To Reproduce**
-Steps to reproduce:
-1. Run '...'
-2. Click on '...'
-3. See error
-
-**Expected Behavior**
-What you expected to happen.
-
-**Actual Behavior**
-What actually happened.
-
-**Environment**
-- OS: [e.g., Cloud Shell, macOS, Ubuntu]
-- Terraform version: [e.g., 1.6.0]
-- GCP region: [e.g., us-central1]
-
-**Logs/Screenshots**
-Relevant error messages or screenshots.
-
-**Additional Context**
-Any other relevant information.
-```
-
-## 💡 Feature Requests
-
-### Feature Request Template
-
-```markdown
-**Feature Description**
-Clear description of the proposed feature.
-
-**Use Case**
-Why is this feature needed? Who will benefit?
-
-**Proposed Implementation**
-How should this work?
-
-**Alternatives Considered**
-What other solutions did you consider?
-
-**Additional Context**
-Any other relevant information.
-```
-
-## 🏗️ Development Setup
-
-### Prerequisites
-
-- Git
-- Terraform >= 1.0
-- Google Cloud SDK (gcloud)
-- shellcheck (optional, for bash validation)
-- A GCP project for testing
-
-### Local Development
-
-```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/shell-test.git
-cd shell-test
-
-# Create a test branch
-git checkout -b test/my-changes
-
-# Make changes
-# ...
-
-# Format Terraform
-terraform fmt -recursive
-
-# Validate
-terraform init
-terraform validate
-
-# Test (requires GCP project)
-export TF_VAR_project_id="your-test-project"
-terraform plan
-```
-
-### Testing in Cloud Shell
-
-The best way to test the complete experience:
-
-1. Push changes to your fork
-2. Update the "Open in Cloud Shell" URL to point to your fork
-3. Click the button and test the full flow
-
-## 📋 Project Structure
-
-Understanding the project layout:
+## Project Structure
 
 ```
-shell-test/
-├── .github/
-│   └── workflows/        # CI/CD workflows
-├── main.tf              # Main Terraform config
-├── variables.tf         # Input variables
-├── outputs.tf           # Output values
-├── setup.sh            # Interactive setup script
-├── tutorial.md         # Cloud Shell tutorial
-├── README.md           # Main documentation
-├── QUICKSTART.md       # Quick start guide
-├── CONTRIBUTING.md     # This file
-├── example.tfvars      # Example variables
-├── .gitignore         # Git ignore rules
-├── cloudshell.yaml    # Cloud Shell config
-└── LICENSE            # MIT License
+.
+├── README.md              # Main documentation
+├── tutorial.md            # Cloud Shell tutorial
+├── setup.py               # Interactive CLI
+├── requirements.txt       # Python dependencies
+├── deploy.sh              # Deployment orchestration
+├── cleanup.sh             # Resource cleanup
+├── terraform/
+│   ├── main.tf            # Main infrastructure
+│   ├── variables.tf       # Input variables
+│   ├── outputs.tf         # Output values
+│   └── terraform.tfvars.example
+└── .gcloudignore          # Cloud Shell ignore patterns
 ```
 
-## 🤝 Community
+## Feature Ideas
 
-### Getting Help
+Looking for contribution ideas? Consider:
 
-- Open a [GitHub Issue](https://github.com/YOUR_USERNAME/shell-test/issues)
-- Check existing documentation
-- Review closed issues for solutions
+- [ ] Add support for custom Docker images
+- [ ] Implement Cloud SQL integration
+- [ ] Add monitoring/alerting setup
+- [ ] Support for custom domains
+- [ ] Cloud Build CI/CD integration
+- [ ] Multiple environment support (dev/staging/prod)
+- [ ] Cost estimation before deployment
+- [ ] Health check configuration
+- [ ] Environment variable management
+- [ ] Secret Manager integration
 
-### Code of Conduct
+## Questions?
 
-Be respectful and inclusive. We follow the [Contributor Covenant](https://www.contributor-covenant.org/).
+- Open an issue for questions
+- Tag with "question" label
+- Be specific about what you need help with
 
-## 📜 License
+## Code of Conduct
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
-
-## 🙏 Thank You!
-
-Every contribution, no matter how small, helps make this project better. We appreciate your time and effort!
+Be respectful and constructive in all interactions. We're all here to learn and improve!
 
 ---
 
-**Questions?** Feel free to open an issue or reach out to the maintainers.
+Thank you for contributing! 🚀
 

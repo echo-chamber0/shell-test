@@ -1,0 +1,12 @@
+# Python dependencies for interactive Cloud Shell setup script
+# Install with: pip install -r requirements.txt
+
+# Beautiful terminal UI with colors, panels, progress bars, tables
+rich>=13.0.0
+
+# Interactive CLI prompts with validation
+questionary>=2.0.0
+
+# Environment variable management (optional, but useful)
+python-dotenv>=1.0.0
+
