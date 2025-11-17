@@ -22,19 +22,48 @@ cloudshell:
     echo "✅ Repository cloned successfully!"
     echo "✅ Scripts are now executable"
     echo ""
-    echo "📚 Quick Start Options:"
+    
+    # Ask user if they want to run setup immediately
+    echo "🎯 Would you like to start the interactive deployment now?"
     echo ""
-    echo "  1. 🎓 Interactive Tutorial (Recommended):"
-    echo "     cloudshell launch-tutorial tutorial.md"
+    echo "  • Press ENTER to start interactive setup"
+    echo "  • Type 'tutorial' for step-by-step tutorial"
+    echo "  • Type 'manual' for manual deployment"
+    echo "  • Type 'skip' to explore on your own"
     echo ""
-    echo "  2. 🖥️  Beautiful CLI Setup:"
-    echo "     ./setup.sh"
-    echo ""
-    echo "  3. ⚡ Manual Terraform:"
-    echo "     cp example.tfvars terraform.tfvars"
-    echo "     nano terraform.tfvars"
-    echo "     terraform init && terraform apply"
-    echo ""
-    echo "═══════════════════════════════════════════════════════════════"
-    echo ""
+    read -p "→ Your choice (press ENTER for setup): " choice
+    
+    case "${choice,,}" in
+      "tutorial")
+        echo ""
+        echo "🎓 Launching interactive tutorial..."
+        cloudshell launch-tutorial tutorial.md
+        ;;
+      "manual")
+        echo ""
+        echo "📚 Manual Deployment Instructions:"
+        echo ""
+        echo "  1. Create terraform.tfvars:"
+        echo "     cp example.tfvars terraform.tfvars"
+        echo "     nano terraform.tfvars"
+        echo ""
+        echo "  2. Deploy:"
+        echo "     terraform init && terraform apply"
+        echo ""
+        ;;
+      "skip")
+        echo ""
+        echo "📖 Quick Reference:"
+        echo "  • Interactive setup: ./setup.sh"
+        echo "  • Tutorial: cloudshell launch-tutorial tutorial.md"
+        echo "  • Manual: cat QUICKSTART.md"
+        echo ""
+        ;;
+      *)
+        echo ""
+        echo "🚀 Starting interactive deployment..."
+        echo ""
+        ./setup.sh
+        ;;
+    esac
 
