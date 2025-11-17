@@ -1,0 +1,31 @@
+# Cloud Shell configuration file
+# This file defines the Cloud Shell environment for this repository
+
+# Automatically open the tutorial when opening in Cloud Shell
+cloudshell:
+  # Open the tutorial on startup
+  open_in_editor:
+    - README.md
+  
+  # Pre-install required tools (optional, Terraform is already in Cloud Shell)
+  required_commands:
+    - terraform
+    - gcloud
+  
+  # Custom startup script
+  startup_script: |
+    #!/bin/bash
+    echo "🚀 Setting up Cloud Run deployment environment..."
+    
+    # Make setup script executable
+    chmod +x setup.sh
+    
+    # Display quick start
+    echo ""
+    echo "✅ Environment ready!"
+    echo ""
+    echo "Quick Start Options:"
+    echo "  1. Interactive setup: ./setup.sh"
+    echo "  2. Launch tutorial: cloudshell launch-tutorial tutorial.md"
+    echo ""
+
