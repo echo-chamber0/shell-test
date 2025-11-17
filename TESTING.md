@@ -146,7 +146,7 @@ terraform plan
 
 ```bash
 # Create GitHub repo first, then:
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git remote add origin https://github.com/Arturio93/shell-test.git
 git add .
 git commit -m "Initial commit"
 git push -u origin main
@@ -156,7 +156,7 @@ git push -u origin main
 
 Edit `README.md` and replace:
 ```markdown
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/YOUR_REPO.git&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md)
 ```
 
 With your actual GitHub URL.

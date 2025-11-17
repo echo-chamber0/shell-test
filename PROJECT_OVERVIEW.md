@@ -477,8 +477,8 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/YOUR_USERNAME/YOUR_REPO/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/YOUR_USERNAME/YOUR_REPO/discussions)
+- **Issues:** [GitHub Issues](https://github.com/Arturio93/shell-test/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Arturio93/shell-test/discussions)
 - **Stack Overflow:** Tag `google-cloud-run`
 
 ---

@@ -331,7 +331,7 @@ User Satisfaction: High ⭐⭐⭐⭐
 
 2. **Update README.md** with your GitHub URL
    ```markdown
-   Replace: YOUR_USERNAME/YOUR_REPO
+   Replace: Arturio93/shell-test
    With: yourusername/gcp-cloudrun-interactive
    ```
 

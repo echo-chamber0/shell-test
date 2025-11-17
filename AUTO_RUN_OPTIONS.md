@@ -203,7 +203,7 @@ Tutorial is open in the right panel →
 
 **Update URL:**
 ```markdown
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/YOUR_REPO.git&cloudshell_tutorial=tutorial.md&cloudshell_print=WELCOME.txt)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md&cloudshell_print=WELCOME.txt)
 ```
 
 **Pros:**

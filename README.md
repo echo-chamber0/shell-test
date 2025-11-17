@@ -6,7 +6,7 @@ This repository provides an **interactive, beautiful experience** to deploy an n
 
 Click the button below to open this repository in Google Cloud Shell and launch the interactive tutorial:
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/YOUR_REPO.git&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md)
 
 > **Note:** After clicking, the tutorial will automatically open in the Cloud Shell interface. Just follow the interactive prompts!
 
@@ -116,8 +116,8 @@ If you prefer to run locally:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone https://github.com/Arturio93/shell-test.git
+cd shell-test
 ```
 
 ### 2. Install Python Dependencies

@@ -22,8 +22,8 @@ UPDATE FILES:
 =============
 
 □ Edit README.md
-  - Replace YOUR_USERNAME with your GitHub username
-  - Replace YOUR_REPO with your repository name
+  - Replace Arturio93 with your GitHub username
+  - Replace shell-test with your repository name
   
 □ Edit GETTING_STARTED.md
   - Update example URLs with your repository
@@ -34,7 +34,7 @@ PUSH TO GITHUB:
 □ Initialize git (if needed): git init
 □ Add files: git add .
 □ Commit: git commit -m "Initial commit: Interactive Cloud Run deployment"
-□ Add remote: git remote add origin https://github.com/YOUR_USERNAME/REPO.git
+□ Add remote: git remote add origin https://github.com/Arturio93/REPO.git
 □ Push: git push -u origin main
 
 VERIFY ON GITHUB:
@@ -109,7 +109,7 @@ MONITOR:
 
 Next command to run:
 
-  git remote add origin https://github.com/YOUR_USERNAME/REPO.git
+  git remote add origin https://github.com/Arturio93/REPO.git
   git push -u origin main
 
 Then test the Cloud Shell button!

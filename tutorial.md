@@ -484,7 +484,7 @@ Need help or have questions?
 
 - 📚 [Stack Overflow](https://stackoverflow.com/questions/tagged/google-cloud-run) - Tag: `google-cloud-run`
 - 💬 [Google Cloud Community](https://www.googlecloudcommunity.com/)
-- 🐛 [Report Issues](https://github.com/YOUR_USERNAME/YOUR_REPO/issues)
+- 🐛 [Report Issues](https://github.com/Arturio93/shell-test/issues)
 
 ---
 

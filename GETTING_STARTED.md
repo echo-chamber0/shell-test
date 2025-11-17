@@ -43,15 +43,15 @@ Edit `README.md` and replace these placeholders:
 
 ```markdown
 # Find this line:
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/YOUR_REPO.git&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md)
 
 # Replace with:
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/gcp-cloudrun-interactive.git&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/gcp-cloudrun-interactive.git&cloudshell_tutorial=tutorial.md)
 ```
 
 Replace:
-- `YOUR_USERNAME` with your GitHub username
-- `YOUR_REPO` (or use the name you chose in Step 1)
+- `Arturio93` with your GitHub username
+- `shell-test` (or use the name you chose in Step 1)
 
 ### Step 3: Push to GitHub
 
@@ -68,7 +68,7 @@ git add .
 git commit -m "Initial commit: Interactive Cloud Run deployment tutorial"
 
 # Add remote (replace with your repository URL)
-git remote add origin https://github.com/YOUR_USERNAME/gcp-cloudrun-interactive.git
+git remote add origin https://github.com/Arturio93/gcp-cloudrun-interactive.git
 
 # Push to GitHub
 git branch -M main
@@ -78,7 +78,7 @@ git push -u origin main
 **Alternative: Using SSH**
 
 ```bash
-git remote add origin git@github.com:YOUR_USERNAME/gcp-cloudrun-interactive.git
+git remote add origin git@github.com:Arturio93/gcp-cloudrun-interactive.git
 git push -u origin main
 ```
 

@@ -5,7 +5,7 @@ This document explains how the "Open in Cloud Shell" button works and how to cus
 ## The Button
 
 ```markdown
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/YOUR_REPO.git&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md)
 ```
 
 ## URL Parameters
@@ -17,10 +17,10 @@ The Cloud Shell link supports several parameters:
 The GitHub repository URL to clone.
 
 ```
-cloudshell_git_repo=https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cloudshell_git_repo=https://github.com/Arturio93/shell-test.git
 ```
 
-**Important:** Replace `YOUR_USERNAME` and `YOUR_REPO` with actual values before publishing.
+**Important:** Replace `Arturio93` and `shell-test` with actual values before publishing.
 
 ### 2. `cloudshell_tutorial` (Optional, Recommended)
 
@@ -122,12 +122,12 @@ Use `---` (horizontal rule) to separate steps visually.
 ## Testing Your Link
 
 1. **Update the README.md:**
-   - Replace `YOUR_USERNAME` with your GitHub username
-   - Replace `YOUR_REPO` with your repository name
+   - Replace `Arturio93` with your GitHub username
+   - Replace `shell-test` with your repository name
 
 2. **Push to GitHub:**
    ```bash
-   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+   git remote add origin https://github.com/Arturio93/shell-test.git
    git branch -M main
    git push -u origin main
    ```
