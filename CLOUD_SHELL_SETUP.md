@@ -164,24 +164,52 @@ Use `---` (horizontal rule) to separate steps visually.
 
 ## Advanced: Auto-run Script on Open
 
-Create a file named `.cloudshellrc` in your repository root:
+The repository includes a `.cloudshellrc` file that runs automatically when Cloud Shell opens.
+
+### Current Behavior
+
+By default, it displays a welcome message and quick start instructions:
 
 ```bash
-#!/bin/bash
-# Auto-run when Cloud Shell opens
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Welcome to Cloud Run Interactive Deployment!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-echo "Welcome to Cloud Run Tutorial!"
-echo "Installing dependencies..."
-pip install -r requirements.txt
-echo "Ready! Type 'python setup.py' to begin."
+✨ Repository cloned successfully!
+
+📚 The tutorial has opened in the right panel.
+   Follow the steps to deploy your Cloud Run service.
+
+Quick Start:
+  1. Install dependencies: pip install -r requirements.txt
+  2. Run interactive setup: python setup.py
+  3. Deploy infrastructure: ./deploy.sh
 ```
 
-Make it executable:
+### Optional: Auto-Install Dependencies
+
+To automatically install Python dependencies when Cloud Shell opens, edit `.cloudshellrc` and uncomment:
+
 ```bash
-chmod +x .cloudshellrc
+# Uncomment these lines in .cloudshellrc:
+echo "Installing Python dependencies..."
+pip install -r requirements.txt --quiet
+echo "✅ Dependencies installed"
 ```
 
-**Note:** This runs automatically and can be disruptive. Use sparingly.
+### Optional: Auto-Run setup.py
+
+To automatically run the interactive setup script, edit `.cloudshellrc` and uncomment:
+
+```bash
+# Uncomment this line in .cloudshellrc:
+echo "Starting interactive setup..."
+python setup.py
+```
+
+**⚠️ Warning:** Auto-running interactive scripts can be intrusive since it immediately prompts for input. Most users prefer to follow the tutorial at their own pace.
+
+**Recommendation:** Keep the default behavior (welcome message only) for better user experience.
 
 ## Best Practices
 
