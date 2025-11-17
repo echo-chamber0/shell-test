@@ -91,7 +91,8 @@ select_option() {
     PS3="  ${ARROW} Enter your choice (number): "
     select opt in "${options[@]}"; do
         if [ -n "$opt" ]; then
-            echo "$opt"
+            # Return only the first word, stripping any color codes or special chars
+            echo "$opt" | awk '{print $1}'
             break
         else
             echo -e "${RED}Invalid selection. Please try again.${NC}"
