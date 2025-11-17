@@ -80,6 +80,11 @@ confirm() {
     esac
 }
 
+# Function to strip ANSI color codes from a string
+strip_ansi() {
+    echo "$1" | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\r'
+}
+
 # Function to display a menu
 select_option() {
     local prompt=$1
@@ -88,11 +93,12 @@ select_option() {
     
     echo -e "\n${CYAN}?${NC} ${prompt}\n"
     
-    PS3="  ${ARROW} Enter your choice (number): "
+    # Use plain PS3 prompt without color codes to prevent capture issues
+    PS3="  → Enter your choice (number): "
     select opt in "${options[@]}"; do
         if [ -n "$opt" ]; then
             # Return only the first word, stripping any color codes or special chars
-            echo "$opt" | awk '{print $1}'
+            echo "$opt" | awk '{print $1}' | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\r'
             break
         else
             echo -e "${RED}Invalid selection. Please try again.${NC}"
@@ -254,6 +260,16 @@ if ! confirm "Proceed with deployment?"; then
     print_warning "Deployment cancelled"
     exit 0
 fi
+
+# Strip any ANSI codes from all variables before using them
+PROJECT_ID=$(strip_ansi "$PROJECT_ID")
+REGION=$(strip_ansi "$REGION")
+SERVICE_NAME=$(strip_ansi "$SERVICE_NAME")
+CPU=$(strip_ansi "$CPU")
+MEMORY=$(strip_ansi "$MEMORY")
+MIN_INSTANCES=$(strip_ansi "$MIN_INSTANCES")
+MAX_INSTANCES=$(strip_ansi "$MAX_INSTANCES")
+ALLOW_UNAUTH=$(strip_ansi "$ALLOW_UNAUTH")
 
 # Export variables for Terraform
 export TF_VAR_project_id="$PROJECT_ID"
