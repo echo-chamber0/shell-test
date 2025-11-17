@@ -1,6 +1,6 @@
 # 🚀 Cloud Run Deployment with Terraform
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/shell-test&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test&cloudshell_tutorial=tutorial.md)
 
 Deploy a Cloud Run service with nginx using Terraform through an interactive experience in Google Cloud Shell!
 
@@ -29,7 +29,7 @@ If you prefer to work locally or in your own environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/shell-test.git
+git clone https://github.com/Arturio93/shell-test.git
 cd shell-test
 
 # Run the interactive setup
@@ -177,7 +177,7 @@ https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=REPO_URL&cl
 
 ### Complete Example:
 ```markdown
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/YOUR_USERNAME/shell-test&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test&cloudshell_tutorial=tutorial.md)
 ```
 
 ### Parameters Explained:

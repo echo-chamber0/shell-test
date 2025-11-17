@@ -1,31 +1,40 @@
 # Cloud Shell configuration file
 # This file defines the Cloud Shell environment for this repository
 
-# Automatically open the tutorial when opening in Cloud Shell
 cloudshell:
-  # Open the tutorial on startup
+  # Open these files in the editor on startup
   open_in_editor:
     - README.md
   
-  # Pre-install required tools (optional, Terraform is already in Cloud Shell)
-  required_commands:
-    - terraform
-    - gcloud
-  
-  # Custom startup script
+  # Custom startup script that runs when repo is opened
   startup_script: |
     #!/bin/bash
-    echo "🚀 Setting up Cloud Run deployment environment..."
     
-    # Make setup script executable
-    chmod +x setup.sh
+    # Make scripts executable
+    chmod +x setup.sh init-git.sh
     
-    # Display quick start
+    # Display welcome banner
     echo ""
-    echo "✅ Environment ready!"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "  🚀 Cloud Run Deployment Environment"
+    echo "═══════════════════════════════════════════════════════════════"
     echo ""
-    echo "Quick Start Options:"
-    echo "  1. Interactive setup: ./setup.sh"
-    echo "  2. Launch tutorial: cloudshell launch-tutorial tutorial.md"
+    echo "✅ Repository cloned successfully!"
+    echo "✅ Scripts are now executable"
+    echo ""
+    echo "📚 Quick Start Options:"
+    echo ""
+    echo "  1. 🎓 Interactive Tutorial (Recommended):"
+    echo "     cloudshell launch-tutorial tutorial.md"
+    echo ""
+    echo "  2. 🖥️  Beautiful CLI Setup:"
+    echo "     ./setup.sh"
+    echo ""
+    echo "  3. ⚡ Manual Terraform:"
+    echo "     cp example.tfvars terraform.tfvars"
+    echo "     nano terraform.tfvars"
+    echo "     terraform init && terraform apply"
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════"
     echo ""
 
