@@ -54,8 +54,11 @@ prompt_input() {
     if [ -n "$default" ]; then
         echo -e "  ${YELLOW}(default: ${default})${NC}"
     fi
-    echo -n "  ${ARROW} "
+    echo -n "  → "
     read -r input
+    
+    # Strip any ANSI codes from input
+    input=$(echo "$input" | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\r' | xargs)
     
     if [ -z "$input" ] && [ -n "$default" ]; then
         eval "$var_name='$default'"
@@ -68,8 +71,12 @@ prompt_input() {
 confirm() {
     local prompt=$1
     echo -e "\n${YELLOW}?${NC} ${prompt} ${YELLOW}(y/n)${NC}"
-    echo -n "  ${ARROW} "
+    echo -n "  → "
     read -r response
+    
+    # Strip any ANSI codes from response
+    response=$(echo "$response" | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\r' | xargs)
+    
     case "$response" in
         [yY][eE][sS]|[yY]) 
             return 0
