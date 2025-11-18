@@ -11,7 +11,7 @@
 
 terraform {
   required_version = ">= 1.5.0"
-  
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -34,7 +34,7 @@ resource "google_cloud_run_service" "nginx" {
     spec {
       containers {
         image = var.container_image
-        
+
         # Resource limits
         resources {
           limits = {
@@ -42,16 +42,16 @@ resource "google_cloud_run_service" "nginx" {
             memory = var.memory_limit
           }
         }
-        
+
         # Container port (Cloud Run uses 8080 by default)
         ports {
           container_port = 8080
         }
       }
-      
+
       # Concurrency: Maximum number of requests per container instance
       container_concurrency = 80
-      
+
       # Service account (uses default if not specified)
       # service_account_name = google_service_account.cloudrun_sa.email
     }
@@ -69,21 +69,21 @@ resource "google_cloud_run_service" "nginx" {
       # Autoscaling configuration
       "autoscaling.knative.dev/minScale" = "0"
       "autoscaling.knative.dev/maxScale" = "10"
-      
+
       # Ingress: Allow all traffic
       "run.googleapis.com/ingress" = "all"
-      
+
       # Client name for tracking
       "run.googleapis.com/client-name" = "terraform"
     }
-    
+
     labels = {
       managed-by  = "terraform"
       environment = "demo"
       service     = "nginx"
     }
   }
-  
+
   # Prevent accidental deletion during development
   # Set to true for production
   lifecycle {

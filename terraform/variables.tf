@@ -8,7 +8,7 @@
 variable "project_id" {
   description = "GCP Project ID where resources will be created"
   type        = string
-  
+
   validation {
     condition     = can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$", var.project_id))
     error_message = "Project ID must be 6-30 characters, lowercase letters, numbers, and hyphens only. Must start with letter and not end with hyphen."
@@ -18,7 +18,7 @@ variable "project_id" {
 variable "service_name" {
   description = "Name of the Cloud Run service"
   type        = string
-  
+
   validation {
     condition     = can(regex("^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$|^[a-z0-9]$", var.service_name))
     error_message = "Service name must be 1-63 characters, lowercase letters, numbers, and hyphens. Must start and end with alphanumeric character."
@@ -29,7 +29,7 @@ variable "region" {
   description = "GCP region for Cloud Run deployment"
   type        = string
   default     = "us-central1"
-  
+
   validation {
     condition = contains([
       "us-central1", "us-east1", "us-east4", "us-west1",
@@ -50,7 +50,7 @@ variable "container_image" {
   description = "Container image to deploy (defaults to nginx hello world)"
   type        = string
   default     = "gcr.io/cloudrun/hello"
-  
+
   # Example custom images:
   # "gcr.io/google-samples/hello-app:1.0"
   # "us-docker.pkg.dev/cloudrun/container/hello:latest"
@@ -61,7 +61,7 @@ variable "cpu_limit" {
   description = "CPU limit for container (e.g., '1000m' = 1 vCPU, '2000m' = 2 vCPU)"
   type        = string
   default     = "1000m"
-  
+
   validation {
     condition     = can(regex("^[0-9]+m$", var.cpu_limit))
     error_message = "CPU limit must be in millicores format (e.g., '1000m')."
@@ -72,7 +72,7 @@ variable "memory_limit" {
   description = "Memory limit for container (e.g., '256Mi', '512Mi', '1Gi')"
   type        = string
   default     = "256Mi"
-  
+
   validation {
     condition     = can(regex("^[0-9]+(Mi|Gi)$", var.memory_limit))
     error_message = "Memory limit must be in Mi or Gi format (e.g., '256Mi', '1Gi')."
