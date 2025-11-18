@@ -25,10 +25,39 @@ provider "google" {
   region  = var.region
 }
 
+# Enable required GCP APIs
+resource "google_project_service" "cloudrun_api" {
+  project = var.project_id
+  service = "run.googleapis.com"
+
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "artifactregistry_api" {
+  project = var.project_id
+  service = "artifactregistry.googleapis.com"
+
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "iam_api" {
+  project = var.project_id
+  service = "iam.googleapis.com"
+
+  disable_on_destroy = false
+}
+
 # Cloud Run Service
 resource "google_cloud_run_service" "nginx" {
   name     = var.service_name
   location = var.region
+
+  # Ensure APIs are enabled before creating the service
+  depends_on = [
+    google_project_service.cloudrun_api,
+    google_project_service.artifactregistry_api,
+    google_project_service.iam_api
+  ]
 
   template {
     spec {

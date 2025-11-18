@@ -136,29 +136,52 @@ def get_available_regions():
     ]
 
 
-def ensure_gcloud_auth():
-    """Ensure gcloud is properly authenticated."""
+def ensure_gcloud_auth(project_id):
+    """Ensure gcloud is properly authenticated and project is set."""
     try:
-        # Try to get the current account
+        # Set the active project
+        console.print(f"[dim]Setting active project: {project_id}[/dim]")
+        subprocess.run(
+            ["gcloud", "config", "set", "project", project_id],
+            capture_output=True,
+            check=True,
+            timeout=10
+        )
+        
+        # Print application-default credentials to ensure they're available
         result = subprocess.run(
-            ["gcloud", "auth", "list", "--filter=status:ACTIVE", "--format=value(account)"],
+            ["gcloud", "auth", "application-default", "print-access-token"],
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=10
         )
         
         if result.returncode == 0 and result.stdout.strip():
+            console.print("[dim]Authentication verified[/dim]")
             return True
         
-        # If not authenticated, try to refresh
-        console.print("[yellow]Refreshing authentication...[/yellow]")
-        subprocess.run(
-            ["gcloud", "auth", "application-default", "login", "--no-launch-browser"],
-            check=False
+        # If token doesn't exist, try to create it
+        console.print("[yellow]Setting up application credentials...[/yellow]")
+        
+        # In Cloud Shell, we can use gcloud auth print-access-token
+        # and set it as GOOGLE_OAUTH_ACCESS_TOKEN
+        result = subprocess.run(
+            ["gcloud", "auth", "print-access-token"],
+            capture_output=True,
+            text=True,
+            timeout=10
         )
+        
+        if result.returncode == 0 and result.stdout.strip():
+            # Set the token as environment variable for Terraform
+            os.environ['GOOGLE_OAUTH_ACCESS_TOKEN'] = result.stdout.strip()
+            console.print("[dim]Access token configured[/dim]")
+            return True
+        
         return True
-    except Exception:
-        return True  # Continue anyway in Cloud Shell
+    except Exception as e:
+        console.print(f"[dim]Auth setup note: {e}[/dim]")
+        return True
 
 
 def verify_project_access(project_id):
@@ -341,8 +364,8 @@ def deploy_infrastructure(config):
     
     terraform_dir = Path("terraform")
     
-    # Ensure authentication is fresh
-    ensure_gcloud_auth()
+    # Ensure authentication is fresh and project is set
+    ensure_gcloud_auth(config['project_id'])
     
     # Step 1: Generate configuration
     console.print("[bold cyan]Stage 1:[/bold cyan] Generating Terraform configuration...")
@@ -380,7 +403,7 @@ def deploy_infrastructure(config):
         return False
     
     print_success("Infrastructure plan created")
-    console.print("\n[dim]Review: Cloud Run service will be created in", config['region'] + "[/dim]")
+    console.print(f"\n[dim]Review: Cloud Run service will be created in {config['region']}[/dim]")
     time.sleep(1)
     
     # Step 4: Confirm deployment
@@ -402,6 +425,17 @@ def deploy_infrastructure(config):
     console.print("\n[bold cyan]Stage 4:[/bold cyan] Deploying infrastructure...")
     console.print("[dim]This may take 60-90 seconds...[/dim]\n")
     
+    # Prepare environment with fresh access token
+    env = os.environ.copy()
+    token_result = subprocess.run(
+        ["gcloud", "auth", "print-access-token"],
+        capture_output=True,
+        text=True,
+        timeout=10
+    )
+    if token_result.returncode == 0 and token_result.stdout.strip():
+        env['GOOGLE_OAUTH_ACCESS_TOKEN'] = token_result.stdout.strip()
+    
     with Progress(
         SpinnerColumn(style="cyan"),
         TextColumn("[cyan]{task.description}[/cyan]"),
@@ -410,13 +444,14 @@ def deploy_infrastructure(config):
     ) as progress:
         task = progress.add_task("Deploying Cloud Run service...", total=100)
         
-        # Run terraform apply
+        # Run terraform apply with fresh credentials
         process = subprocess.Popen(
             ["terraform", "apply", "-auto-approve", "tfplan"],
             cwd=terraform_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            env=env
         )
         
         # Simulate progress
@@ -530,5 +565,7 @@ if __name__ == "__main__":
         console.print("\n\n[yellow]Deployment cancelled by user.[/yellow]\n")
         sys.exit(0)
     except Exception as e:
-        console.print(f"\n\n[red]Error: {e}[/red]\n")
+        # Escape any Rich markup in the error message
+        error_msg = str(e).replace("[", "\\[").replace("]", "\\]")
+        console.print(f"\n\n[red]Error: {error_msg}[/red]\n")
         sys.exit(1)

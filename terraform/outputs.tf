@@ -40,3 +40,12 @@ output "resource_limits" {
     memory = var.memory_limit
   }
 }
+
+output "enabled_apis" {
+  description = "GCP APIs enabled for this deployment"
+  value = [
+    google_project_service.cloudrun_api.service,
+    google_project_service.artifactregistry_api.service,
+    google_project_service.iam_api.service
+  ]
+}
