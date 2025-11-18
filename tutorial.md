@@ -2,311 +2,373 @@
 
 ## Welcome
 
-This tutorial guides you through deploying a containerized service on Google Cloud Run using Terraform.
+This tutorial guides you through an automated deployment of a containerized service on Google Cloud Run using Terraform.
 
-**Time to complete:** Approximately 10 minutes  
+**Time to complete:** 5-10 minutes  
 **Cost:** Free tier eligible (no charges for low traffic)
 
 <walkthrough-tutorial-duration duration="10"></walkthrough-tutorial-duration>
 
-Click **Start** to begin the deployment process.
+Click **Start** to begin the automated deployment process.
 
 ---
-1. simple
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?show=project_selector&cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_tutorial=tutorial.md)
-2. with hardcoded project 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_project=hl2-gogl-cdsi-t1iylu&cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_tutorial=tutorial.md)
 
-## Overview: Google Cloud Run
+## Overview: Automated Deployment
+
+This deployment tool handles everything automatically:
+
+**What happens automatically:**
+- Dependency installation
+- GCP authentication verification
+- Configuration collection and validation
+- Terraform initialization
+- Infrastructure planning
+- Resource deployment
+- Service URL retrieval
+
+**Your role:**
+- Answer 4 configuration questions
+- Confirm deployment
+- Access your deployed service
+
+**Technology stack:**
+- **Google Cloud Run**: Serverless container platform
+- **Terraform**: Infrastructure as Code
+- **Python**: Interactive deployment tool
+
+Click **Next** to start.
+
+---
+
+## Step 1: Understanding Cloud Run
 
 Google Cloud Run is a fully managed serverless platform for deploying containerized applications.
 
 **Key Features:**
-- Automatic scaling from zero to N instances
-- Pay-per-use pricing (billed per 100ms of request time)
-- Built-in HTTPS endpoints with automatic SSL
-- Global deployment options
+- **Automatic scaling**: From zero to thousands of instances based on traffic
+- **Pay-per-use**: Billed per 100ms of request time, no charges when idle
+- **Built-in HTTPS**: Automatic SSL certificates and endpoints
+- **Global deployment**: Available in multiple regions worldwide
 
-This tutorial deploys an nginx web server to demonstrate Cloud Run capabilities.
+**What you'll deploy:**
+- A containerized service on Cloud Run
+- Public HTTPS endpoint (or authenticated-only, your choice)
+- Managed by Terraform for easy updates and cleanup
 
-Click **Next** to proceed.
+Click **Next** to verify your environment.
 
 ---
 
-## Step 1: Verify Environment
+## Step 2: Verify Environment
 
-Your Cloud Shell environment is pre-configured with:
-- gcloud CLI (authenticated)
-- terraform CLI
+Your Cloud Shell environment includes:
+- gcloud CLI (pre-authenticated)
+- Terraform CLI
 - Python 3.9+
+- All necessary tools pre-installed
 
-Verify your active project:
+Verify your environment (optional):
 
 ```bash
 gcloud config get-value project
+terraform version
+python3 --version
 ```
 
-If needed, set your project:
+**Note:** If the deployment tool opened automatically in your terminal, you can switch between the terminal and this tutorial panel.
 
-```bash
-gcloud config set project PROJECT_ID
-```
-
-Click **Next** to continue.
+Click **Next** to run the deployment tool.
 
 ---
 
-## Step 2: Install Dependencies
+## Step 3: Run Automated Deployment Tool
 
-Install Python dependencies required for the interactive configuration tool:
+If the deployment tool hasn't started automatically, run:
 
 ```bash
-pip install -r requirements.txt
+python3 setup.py
 ```
 
-**Installed packages:**
-- rich: Terminal UI formatting
-- questionary: Interactive prompts
-- python-dotenv: Environment management
+**The tool will guide you through 4 configuration questions:**
 
-Wait for installation to complete, then click **Next**.
+1. **GCP Project ID**: Your Google Cloud project (may be auto-detected)
+2. **Service Name**: Name for your Cloud Run service (e.g., "datacommons-service")
+3. **Deployment Region**: Geographic location (e.g., us-central1)
+4. **Access Control**: Public access or authenticated-only
+
+**After configuration:**
+- Review the summary
+- Confirm deployment
+- Tool automatically handles:
+  - Terraform initialization
+  - Infrastructure planning
+  - Resource deployment (60-90 seconds)
+  - Service URL retrieval
+
+**Important:** Answer all prompts in the terminal. The tool validates inputs automatically.
+
+Click **Next** after deployment completes.
 
 ---
 
-## Step 3: Run Configuration Tool
+## Step 4: Deployment Process Explained
 
-Launch the interactive configuration tool:
+While deployment runs, here's what happens behind the scenes:
 
-```bash
-python setup.py
-```
+**Stage 1: Configuration**
+- Validates GCP project access
+- Generates Terraform configuration file
+- Creates `terraform/terraform.tfvars`
 
-**You will be prompted for:**
-1. GCP Project ID (validated)
-2. Service name (DNS-compliant format)
-3. Deployment region
-4. Access control (public or authenticated)
+**Stage 2: Terraform Initialization**
+- Downloads Google Cloud provider plugin
+- Sets up local Terraform state
+- Prepares deployment environment
 
-The tool validates all inputs and generates `terraform/terraform.tfvars`.
+**Stage 3: Infrastructure Planning**
+- Plans resource creation
+- Validates configuration
+- Estimates changes
 
-Follow the prompts, then click **Next**.
+**Stage 4: Deployment** (60-90 seconds)
+- Enables required GCP APIs (Cloud Run, IAM, Artifact Registry)
+- Creates Cloud Run service
+- Deploys container image
+- Configures networking and IAM
+- Provisions HTTPS endpoint
+
+**Stage 5: Service Information**
+- Retrieves service URL
+- Displays deployment summary
+- Provides quick commands
+
+Click **Next** once deployment completes.
 
 ---
 
-## Step 4: Review Configuration
+## Step 5: Access Your Deployed Service
 
-Verify the generated configuration:
+After successful deployment, the tool displays your service URL.
+
+**Test your service:**
+
+```bash
+# Get service URL
+cd terraform
+terraform output service_url
+
+# Test the endpoint
+curl $(terraform output -raw service_url)
+```
+
+**Expected response:** HTML content from the deployed container
+
+**Access via browser:**
+- Click the URL in the deployment summary
+- Or visit the Cloud Run console:
+
+<walkthrough-menu-navigation sectionId="CLOUD_RUN_SECTION"></walkthrough-menu-navigation>
+
+Your service is now live with automatic HTTPS and SSL certificates.
+
+Click **Next** to explore monitoring options.
+
+---
+
+## Step 6: View Configuration (Optional)
+
+Review the generated Terraform configuration:
 
 ```bash
 cat terraform/terraform.tfvars
 ```
 
-**Configuration includes:**
+**Configuration file contains:**
 - `project_id`: Your GCP project
 - `service_name`: Cloud Run service identifier
 - `region`: Deployment location
 - `allow_unauthenticated`: Access control setting
 - `container_image`: Container to deploy
 
-To modify, edit the file or re-run `python setup.py`.
-
 <walkthrough-editor-open-file filePath="terraform/terraform.tfvars">
 Open configuration file
 </walkthrough-editor-open-file>
 
-Click **Next** when ready to deploy.
+**To modify configuration:**
+1. Re-run `python3 setup.py` from the project root
+2. Or manually edit `terraform/terraform.tfvars` and run:
+   ```bash
+   cd terraform && terraform apply
+   ```
+
+Click **Next** to learn about monitoring.
 
 ---
 
-## Step 5: Initialize Terraform
+## Step 7: Monitor Your Service (Optional)
 
-Initialize Terraform and download the GCP provider:
+**View service details:**
 
 ```bash
 cd terraform
-terraform init
-```
-
-**This process:**
-1. Downloads the Google Cloud provider plugin
-2. Sets up the Terraform backend (local state)
-3. Prepares the working directory
-
-Expected output: "Terraform has been successfully initialized"
-
-Click **Next** to continue.
-
----
-
-## Step 6: Preview Infrastructure Changes
-
-Review the infrastructure plan before deployment:
-
-```bash
-terraform plan
-```
-
-**Expected resources:**
-- `google_cloud_run_service.nginx`: Cloud Run service
-- `google_cloud_run_service_iam_member.public_access`: IAM policy (if public access enabled)
-
-**Plan shows:**
-- Resources to be created
-- Resource attributes
-- Estimated infrastructure changes
-
-Verify the plan output, then click **Next**.
-
----
-
-## Step 7: Deploy Infrastructure
-
-Deploy the infrastructure:
-
-```bash
-terraform apply
-```
-
-Type `yes` when prompted to confirm deployment.
-
-**Deployment process:**
-1. Creates Cloud Run service
-2. Deploys container image
-3. Configures networking and IAM
-4. Provisions HTTPS endpoint
-
-**Duration:** Approximately 60-90 seconds
-
-Wait for "Apply complete!" message, then click **Next**.
-
----
-
-## Step 8: Access Deployed Service
-
-Retrieve the service URL:
-
-```bash
-terraform output service_url
-```
-
-Test the service:
-
-```bash
-curl $(terraform output -raw service_url)
-```
-
-**Expected response:** HTML content from the nginx container
-
-The service is now accessible via HTTPS with automatic SSL certificate.
-
-Click **Next** to explore additional options.
-
----
-
-## Step 9: View Service Details (Optional)
-
-View service details in the GCP Console:
-
-<walkthrough-menu-navigation sectionId="CLOUD_RUN_SECTION"></walkthrough-menu-navigation>
-
-Or via command line:
-
-```bash
 gcloud run services describe $(terraform output -raw service_name) \
   --region=$(terraform output -raw service_location) \
   --format=yaml
 ```
 
-**Available information:**
-- Service status and configuration
-- Revision history
-- Traffic routing
-- Scaling configuration
-
-Click **Next** when ready to proceed.
-
----
-
-## Step 10: Monitor Service (Optional)
-
-View service logs:
+**View service logs:**
 
 ```bash
 gcloud logging read \
   "resource.type=cloud_run_revision AND resource.labels.service_name=$(terraform output -raw service_name)" \
-  --limit=50 \
+  --limit=20 \
   --format=json
 ```
 
-Generate test traffic:
+**Generate test traffic:**
 
 ```bash
-for i in {1..10}; do curl -s $(terraform output -raw service_url) > /dev/null; echo "Request $i completed"; done
+# Send 10 test requests
+for i in {1..10}; do 
+  curl -s $(terraform output -raw service_url) > /dev/null
+  echo "Request $i completed"
+done
 ```
 
-Metrics are available in the Cloud Console under the service's Metrics tab.
+**View metrics in Console:**
+
+<walkthrough-menu-navigation sectionId="CLOUD_RUN_SECTION"></walkthrough-menu-navigation>
+
+Select your service and click the **Metrics** tab to see:
+- Request count
+- Request latency
+- Container instance count
+- Memory and CPU utilization
 
 Click **Next** to learn about cleanup.
 
 ---
 
-## Step 11: Resource Cleanup
+## Step 8: Update Your Service (Optional)
+
+To update your deployment with different settings:
+
+**Method 1: Re-run setup tool**
+```bash
+cd ..  # Return to project root
+python3 setup.py
+```
+
+The tool will detect existing configuration and prompt for updates.
+
+**Method 2: Manual Terraform update**
+```bash
+cd terraform
+# Edit terraform.tfvars
+terraform apply
+```
+
+Type `yes` to confirm changes.
+
+**Common updates:**
+- Change region
+- Modify access control (public/private)
+- Update container image
+- Adjust resource limits
+
+Click **Next** to learn about cleanup.
+
+---
+
+## Step 9: Resource Cleanup
 
 To remove all deployed resources and avoid charges:
 
-**Option 1: Cleanup script**
+**Method 1: Automated cleanup script**
 ```bash
-cd ..
+cd ..  # Return to project root if in terraform/
 ./cleanup.sh
 ```
 
-**Option 2: Manual cleanup**
+**Method 2: Manual Terraform cleanup**
 ```bash
+cd terraform
 terraform destroy
 ```
 
 Type `yes` when prompted.
 
 **Resources removed:**
-- Cloud Run service
+- Cloud Run service and all revisions
 - IAM policy bindings
+- Service configurations
 - All associated resources
 
-**Duration:** Approximately 10-15 seconds
+**Duration:** 10-15 seconds
 
-Click **Next** for summary.
+**Note:** This does NOT delete:
+- Your GCP project
+- Terraform state files (local only)
+- Cloud Shell environment
+
+**Cost after cleanup:** $0.00 (all resources deleted)
+
+Click **Next** for summary and next steps.
 
 ---
 
 ## Summary
 
-**Completed tasks:**
-- Configured deployment parameters
-- Deployed Cloud Run service using Terraform
-- Accessed live HTTPS endpoint
-- Reviewed service details and logs
-- Cleaned up resources (optional)
+**What you accomplished:**
+- Deployed a containerized service to Google Cloud Run
+- Used Infrastructure as Code (Terraform) for repeatable deployments
+- Configured automated scaling and HTTPS endpoints
+- Learned monitoring and logging for Cloud Run services
+- Managed resource lifecycle (create, update, destroy)
+
+**Time saved with automation:**
+- Manual deployment: 20-30 minutes
+- Automated deployment: 5-10 minutes
+- Commands required: 1 instead of 10+
 
 **Skills practiced:**
 - Cloud Run serverless deployment
-- Infrastructure as Code with Terraform
-- GCP IAM configuration
+- Terraform Infrastructure as Code
+- GCP IAM and access control
 - Service monitoring and logging
+- Interactive CLI tool usage
 
 ### Next Steps
 
-**Extend this deployment:**
-- Deploy custom container images
-- Add Cloud SQL database
-- Implement Cloud Build CI/CD
-- Configure custom domains
+**Customize this deployment:**
+- Deploy your own container image (update `container_image` in variables)
+- Add environment variables and secrets
+- Connect Cloud SQL database
+- Configure custom domains with Cloud DNS
+- Implement Cloud Build for CI/CD
 - Add Cloud CDN for global distribution
+- Set up Cloud Armor for DDoS protection
 
-**Resources:**
+**Extend the infrastructure:**
+- Add multiple services (microservices)
+- Implement Cloud Load Balancing
+- Add Cloud Monitoring alerts
+- Create staging and production environments
+- Implement blue-green deployments
+
+**Learn more:**
 - [Cloud Run Documentation](https://cloud.google.com/run/docs)
 - [Terraform GCP Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
-- [Cloud Run Pricing](https://cloud.google.com/run/pricing)
+- [Cloud Run Pricing Calculator](https://cloud.google.com/run/pricing)
+- [Cloud Run Best Practices](https://cloud.google.com/run/docs/best-practices)
+
+**Share this tool:**
+- Fork the repository on GitHub
+- Customize for your team's use cases
+- Add to your organization's deployment toolkit
 
 <walkthrough-conclusion-trophy></walkthrough-conclusion-trophy>
 
-Thank you for completing this tutorial.
+Thank you for completing this automated deployment tutorial.
+
+**Repository:** [github.com/echo-chamber0/shell-test](https://github.com/echo-chamber0/shell-test)

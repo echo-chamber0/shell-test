@@ -560,36 +560,44 @@ def deploy_infrastructure(config):
     with Progress(
         SpinnerColumn(style="cyan"),
         TextColumn("[cyan]{task.description}[/cyan]"),
-        BarColumn(complete_style="green", finished_style="green"),
-        console=console
+        console=console,
+        transient=False
     ) as progress:
-        task = progress.add_task("Deploying Cloud Run service...", total=100)
+        task = progress.add_task("Deploying Cloud Run service...", total=None)
         
         # Run terraform apply with the same authenticated environment
         process = subprocess.Popen(
             ["terraform", "apply", "-auto-approve", "tfplan"],
             cwd=terraform_dir,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,  # Combine stderr with stdout
             text=True,
+            bufsize=1,  # Line buffered
             env=terraform_env
         )
         
-        # Simulate progress
-        for i in range(100):
-            time.sleep(0.8)
-            progress.update(task, advance=1)
+        # Read output in real-time to prevent buffer blocking
+        output_lines = []
+        while True:
+            line = process.stdout.readline()
+            if line:
+                output_lines.append(line)
             if process.poll() is not None:
+                # Process finished, read any remaining output
+                remaining = process.stdout.read()
+                if remaining:
+                    output_lines.append(remaining)
                 break
+            time.sleep(0.1)
         
-        process.wait()
+        returncode = process.returncode
+        full_output = ''.join(output_lines)
         
-        if process.returncode != 0:
+        if returncode != 0:
             progress.stop()
             console.print()
             print_error("Deployment failed")
-            stderr = process.stderr.read()
-            console.print(f"\n[red]{stderr}[/red]\n")
+            console.print(f"\n[red]{full_output}[/red]\n")
             return False
     
     console.print()
