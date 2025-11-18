@@ -41,7 +41,7 @@ No manual terminal commands required.
 - Google Cloud Project with billing enabled
 - Required IAM permissions: `roles/run.admin`, `roles/iam.serviceAccountUser`
 
-Cloud Shell provides automatic authentication.
+**Authentication**: The tool automatically detects if you're not authenticated and prompts you to log in. In Cloud Shell, authentication is automatic.
 
 ## Manual Deployment (Optional)
 
@@ -122,7 +122,11 @@ cd terraform && terraform destroy
 
 ### Authentication Issues
 
-If you see OAuth errors, the deployment tool will automatically refresh authentication tokens.
+The tool automatically checks authentication at startup:
+- **Not authenticated**: Prompts you to run `gcloud auth login`
+- **OAuth errors**: Automatically refreshes authentication tokens
+
+In Cloud Shell, authentication is handled automatically.
 
 ### Permission Errors
 

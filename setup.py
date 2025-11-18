@@ -201,6 +201,97 @@ def ensure_gcloud_auth(project_id):
         return os.environ.copy()
 
 
+def check_gcloud_auth():
+    """
+    Check if user is authenticated with gcloud and prompt if not.
+    
+    Uses access token as the source of truth since that's what Terraform needs.
+    Handles Cloud Shell environment appropriately to avoid misleading prompts.
+    """
+    try:
+        # Check if we can get an access token - this is what we actually need
+        result = subprocess.run(
+            ["gcloud", "auth", "print-access-token"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        # If we got a token successfully, we're authenticated
+        if result.returncode == 0 and result.stdout.strip():
+            return True
+        
+        # No valid token - need to authenticate
+        # Detect Cloud Shell for appropriate messaging and auth method
+        in_cloud_shell = (
+            os.environ.get('CLOUD_SHELL') == 'true' or 
+            os.environ.get('GOOGLE_CLOUD_SHELL') == 'true'
+        )
+        
+        console.print()
+        console.print("[yellow]GCP authentication required[/yellow]")
+        console.print()
+        
+        if in_cloud_shell:
+            console.print("You need to authenticate to access your GCP project.")
+            console.print("This is a one-time setup for this Cloud Shell session.")
+        else:
+            console.print("You need to authenticate with Google Cloud to continue.")
+        
+        console.print()
+        
+        if questionary.confirm(
+            "Authenticate now?",
+            default=True,
+            style=questionary.Style([
+                ('question', 'bold yellow'),
+                ('answer', 'bold white'),
+            ])
+        ).ask():
+            console.print()
+            console.print("[cyan]Starting authentication...[/cyan]")
+            
+            if in_cloud_shell:
+                console.print("[dim]Using your Cloud Shell session for authentication.[/dim]")
+                console.print()
+                console.print("[yellow]Note:[/yellow] If you see a message about 'already authenticated',")
+                console.print("just press [bold]Y[/bold] and Enter to continue.")
+            else:
+                console.print("[dim]A browser window will open for you to log in.[/dim]")
+            
+            console.print()
+            
+            # Run gcloud auth login - let it be fully interactive
+            # (In Cloud Shell, user might need to answer "Y" to a prompt, then enter verification code)
+            result = subprocess.run(["gcloud", "auth", "login", "--update-adc"], check=False)
+            
+            if result.returncode == 0:
+                console.print()
+                console.print("[green]Authentication successful![/green]")
+                console.print()
+                return True
+            else:
+                console.print()
+                console.print("[red]Authentication failed.[/red]")
+                console.print()
+                console.print("Please run manually:")
+                console.print("  gcloud auth login")
+                console.print()
+                return False
+        else:
+            console.print()
+            console.print("[yellow]Authentication cancelled.[/yellow]")
+            console.print()
+            console.print("To authenticate manually, run:")
+            console.print("  gcloud auth login")
+            console.print()
+            return False
+            
+    except Exception as e:
+        console.print(f"[dim]Auth check error: {e}[/dim]")
+        return False
+
+
 def verify_project_access(project_id):
     """Verify user has access to the specified GCP project."""
     try:
@@ -279,6 +370,12 @@ def print_error(message):
 def collect_configuration():
     """Collect configuration from user."""
     config = {}
+    
+    # Check authentication first
+    if not check_gcloud_auth():
+        console.print("[red]Authentication is required to continue.[/red]")
+        console.print()
+        return None
     
     # Step 1: Project ID
     print_step_header(1, "GCP Project Configuration")
