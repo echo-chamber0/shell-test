@@ -15,7 +15,7 @@ echo ""
 
 # Install dependencies silently
 echo "Installing dependencies..."
-pip install -r requirements.txt --quiet 2>&1 | grep -v "Requirement already satisfied" || true
+python3 -m pip install --user -r requirements.txt --quiet 2>&1 | grep -v "Requirement already satisfied" || true
 echo "Dependencies installed."
 echo ""
 
@@ -23,4 +23,4 @@ echo ""
 echo "Starting automated deployment tool..."
 echo "Answer a few questions and everything will be deployed automatically."
 echo ""
-python setup.py
+python3 setup.py

@@ -26,20 +26,39 @@ try:
     from rich.layout import Layout
 except ImportError:
     print("Installing required dependencies...")
-    subprocess.check_call([
-        sys.executable, "-m", "pip", "install", 
-        "-q", "-r", "requirements.txt"
-    ])
-    import questionary
-    from questionary import ValidationError, Validator
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
-    from rich.table import Table
-    from rich.text import Text
-    from rich import box
-    from rich.live import Live
-    from rich.layout import Layout
+    print("This will take about 10-15 seconds...")
+    try:
+        # Install dependencies with --user flag for Cloud Shell compatibility
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install", 
+            "--user", "-q", "-r", "requirements.txt"
+        ])
+        
+        # Refresh sys.path to include user site-packages
+        import site
+        import importlib
+        importlib.reload(site)
+        
+        # Try importing again
+        import questionary
+        from questionary import ValidationError, Validator
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
+        from rich.table import Table
+        from rich.text import Text
+        from rich import box
+        from rich.live import Live
+        from rich.layout import Layout
+        
+        print("Dependencies installed successfully!")
+    except Exception as e:
+        print(f"\nError installing dependencies: {e}")
+        print("\nPlease install manually:")
+        print("  pip3 install --user -r requirements.txt")
+        print("\nThen run the script again:")
+        print("  python3 setup.py")
+        sys.exit(1)
 
 console = Console()
 
