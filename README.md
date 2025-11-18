@@ -105,17 +105,17 @@ variable "memory_limit" {
 
 ## Resource Cleanup
 
-After deployment, the tool displays cleanup instructions:
-
-```bash
-cd terraform
-terraform destroy
-```
-
-Or use the cleanup script:
+To remove all deployed resources, run:
 
 ```bash
 ./cleanup.sh
+```
+
+The cleanup script automatically handles authentication and removes all resources. Manual cleanup is also possible but requires authentication setup:
+
+```bash
+export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
+cd terraform && terraform destroy
 ```
 
 ## Troubleshooting

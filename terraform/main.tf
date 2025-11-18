@@ -60,6 +60,14 @@ resource "google_cloud_run_service" "nginx" {
   ]
 
   template {
+    metadata {
+      annotations = {
+        # Autoscaling configuration (revision-level)
+        "autoscaling.knative.dev/minScale" = "0"
+        "autoscaling.knative.dev/maxScale" = "10"
+      }
+    }
+
     spec {
       containers {
         image = var.container_image
@@ -92,13 +100,9 @@ resource "google_cloud_run_service" "nginx" {
     latest_revision = true
   }
 
-  # Metadata and annotations
+  # Metadata and annotations (service-level)
   metadata {
     annotations = {
-      # Autoscaling configuration
-      "autoscaling.knative.dev/minScale" = "0"
-      "autoscaling.knative.dev/maxScale" = "10"
-
       # Ingress: Allow all traffic
       "run.googleapis.com/ingress" = "all"
 

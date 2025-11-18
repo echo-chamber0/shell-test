@@ -137,7 +137,11 @@ def get_available_regions():
 
 
 def ensure_gcloud_auth(project_id):
-    """Ensure gcloud is properly authenticated and project is set."""
+    """Ensure gcloud is properly authenticated and project is set.
+    
+    Returns:
+        dict: Environment variables to use for Terraform commands
+    """
     try:
         # Set the active project
         console.print(f"[dim]Setting active project: {project_id}[/dim]")
@@ -148,23 +152,7 @@ def ensure_gcloud_auth(project_id):
             timeout=10
         )
         
-        # Print application-default credentials to ensure they're available
-        result = subprocess.run(
-            ["gcloud", "auth", "application-default", "print-access-token"],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        
-        if result.returncode == 0 and result.stdout.strip():
-            console.print("[dim]Authentication verified[/dim]")
-            return True
-        
-        # If token doesn't exist, try to create it
-        console.print("[yellow]Setting up application credentials...[/yellow]")
-        
-        # In Cloud Shell, we can use gcloud auth print-access-token
-        # and set it as GOOGLE_OAUTH_ACCESS_TOKEN
+        # Get a fresh access token for Terraform
         result = subprocess.run(
             ["gcloud", "auth", "print-access-token"],
             capture_output=True,
@@ -173,15 +161,25 @@ def ensure_gcloud_auth(project_id):
         )
         
         if result.returncode == 0 and result.stdout.strip():
-            # Set the token as environment variable for Terraform
-            os.environ['GOOGLE_OAUTH_ACCESS_TOKEN'] = result.stdout.strip()
-            console.print("[dim]Access token configured[/dim]")
-            return True
+            token = result.stdout.strip()
+            
+            # Create environment with the token
+            env = os.environ.copy()
+            env['GOOGLE_OAUTH_ACCESS_TOKEN'] = token
+            
+            # Also set it globally for other uses
+            os.environ['GOOGLE_OAUTH_ACCESS_TOKEN'] = token
+            
+            console.print("[dim]Authentication verified[/dim]")
+            return env
         
-        return True
+        # If we can't get token, return default environment
+        console.print("[yellow]Warning: Could not retrieve access token[/yellow]")
+        return os.environ.copy()
+        
     except Exception as e:
         console.print(f"[dim]Auth setup note: {e}[/dim]")
-        return True
+        return os.environ.copy()
 
 
 def verify_project_access(project_id):
@@ -199,15 +197,23 @@ def verify_project_access(project_id):
         return False
 
 
-def run_command(cmd, cwd=None, description="Running command"):
-    """Run a command and return success status."""
+def run_command(cmd, cwd=None, description="Running command", env=None):
+    """Run a command and return success status.
+    
+    Args:
+        cmd: Command to run
+        cwd: Working directory
+        description: Description for logging
+        env: Environment variables (defaults to os.environ if not provided)
+    """
     try:
         result = subprocess.run(
             cmd,
             cwd=cwd,
             capture_output=True,
             text=True,
-            check=True
+            check=True,
+            env=env if env is not None else os.environ
         )
         return True, result.stdout
     except subprocess.CalledProcessError as e:
@@ -364,8 +370,9 @@ def deploy_infrastructure(config):
     
     terraform_dir = Path("terraform")
     
-    # Ensure authentication is fresh and project is set
-    ensure_gcloud_auth(config['project_id'])
+    # Get authentication environment with fresh token
+    # This will be used for ALL terraform commands
+    terraform_env = ensure_gcloud_auth(config['project_id'])
     
     # Step 1: Generate configuration
     console.print("[bold cyan]Stage 1:[/bold cyan] Generating Terraform configuration...")
@@ -373,12 +380,13 @@ def deploy_infrastructure(config):
     print_success(f"Configuration saved: {tfvars_path}")
     time.sleep(0.5)
     
-    # Step 2: Initialize Terraform
+    # Step 2: Initialize Terraform (with auth token)
     console.print("\n[bold cyan]Stage 2:[/bold cyan] Initializing Terraform...")
     success, output = run_command(
         ["terraform", "init", "-upgrade"],
         cwd=terraform_dir,
-        description="terraform init"
+        description="terraform init",
+        env=terraform_env
     )
     
     if not success:
@@ -389,12 +397,13 @@ def deploy_infrastructure(config):
     print_success("Terraform initialized successfully")
     time.sleep(0.5)
     
-    # Step 3: Terraform Plan
+    # Step 3: Terraform Plan (with auth token)
     console.print("\n[bold cyan]Stage 3:[/bold cyan] Planning infrastructure changes...")
     success, output = run_command(
         ["terraform", "plan", "-out=tfplan"],
         cwd=terraform_dir,
-        description="terraform plan"
+        description="terraform plan",
+        env=terraform_env
     )
     
     if not success:
@@ -421,20 +430,9 @@ def deploy_infrastructure(config):
         console.print("\n[yellow]Deployment cancelled by user.[/yellow]\n")
         return False
     
-    # Step 5: Apply
+    # Step 5: Apply (with auth token)
     console.print("\n[bold cyan]Stage 4:[/bold cyan] Deploying infrastructure...")
     console.print("[dim]This may take 60-90 seconds...[/dim]\n")
-    
-    # Prepare environment with fresh access token
-    env = os.environ.copy()
-    token_result = subprocess.run(
-        ["gcloud", "auth", "print-access-token"],
-        capture_output=True,
-        text=True,
-        timeout=10
-    )
-    if token_result.returncode == 0 and token_result.stdout.strip():
-        env['GOOGLE_OAUTH_ACCESS_TOKEN'] = token_result.stdout.strip()
     
     with Progress(
         SpinnerColumn(style="cyan"),
@@ -444,14 +442,14 @@ def deploy_infrastructure(config):
     ) as progress:
         task = progress.add_task("Deploying Cloud Run service...", total=100)
         
-        # Run terraform apply with fresh credentials
+        # Run terraform apply with the same authenticated environment
         process = subprocess.Popen(
             ["terraform", "apply", "-auto-approve", "tfplan"],
             cwd=terraform_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            env=env
+            env=terraform_env
         )
         
         # Simulate progress
@@ -501,7 +499,7 @@ def deploy_infrastructure(config):
   View service:  gcloud run services describe {config['service_name']} --region={config['region']}
 
 [bold yellow]Cleanup:[/bold yellow]
-  To remove resources: cd terraform && terraform destroy
+  To remove resources: ./cleanup.sh
 """
         
         console.print(Panel(

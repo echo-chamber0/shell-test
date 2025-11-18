@@ -9,6 +9,19 @@ echo " Resource Cleanup"
 echo "================================================================================"
 echo ""
 
+# Setup GCP authentication for Terraform
+echo "Setting up GCP authentication..."
+export GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token)
+
+if [ -z "$GOOGLE_OAUTH_ACCESS_TOKEN" ]; then
+    echo "ERROR: Unable to retrieve access token"
+    echo "Please ensure you are authenticated: gcloud auth login"
+    exit 1
+fi
+
+echo "Authentication configured"
+echo ""
+
 # Check if Terraform is initialized
 if [ ! -d "terraform/.terraform" ]; then
     echo "Terraform not initialized. No resources to clean up."
