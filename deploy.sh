@@ -1,109 +1,92 @@
 #!/bin/bash
+# Data Commons Cloud Run Deployment Script
+# Orchestrates the complete deployment workflow
+
 set -e
 
-# ========================================
-# Cloud Run Deployment Orchestrator
-# ========================================
-# This script orchestrates the full deployment:
-# 1. Runs interactive setup (if config missing)
-# 2. Initializes Terraform
-# 3. Plans infrastructure changes
-# 4. Deploys with confirmation
-# ========================================
+echo "================================================================================"
+echo " Data Commons Cloud Run Deployment"
+echo "================================================================================"
+echo ""
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
-echo -e "${CYAN}🚀 Cloud Run Deployment Orchestrator${NC}\n"
-
-# ========================================
-# Step 1: Check Configuration
-# ========================================
-
+# Check for configuration
 if [ ! -f "terraform/terraform.tfvars" ]; then
-    echo -e "${YELLOW}⚠️  Configuration not found. Running interactive setup...${NC}\n"
+    echo "Configuration file not found. Running setup..."
+    echo ""
     python3 setup.py
     
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Setup failed. Exiting.${NC}"
+        echo "ERROR: Setup failed. Exiting."
         exit 1
     fi
     echo ""
 fi
 
-echo -e "${GREEN}✅ Configuration found${NC}\n"
+echo "Configuration verified."
+echo ""
 
-# ========================================
-# Step 2: Initialize Terraform
-# ========================================
-
+# Initialize Terraform
 cd terraform
 
 if [ ! -d ".terraform" ]; then
-    echo -e "${BLUE}📦 Initializing Terraform...${NC}"
+    echo "Initializing Terraform..."
     terraform init
     
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Terraform initialization failed.${NC}"
+        echo "ERROR: Terraform initialization failed."
         exit 1
     fi
     
-    echo -e "${GREEN}✅ Terraform initialized${NC}\n"
+    echo "Terraform initialized successfully."
+    echo ""
 else
-    echo -e "${GREEN}✅ Terraform already initialized${NC}\n"
+    echo "Terraform already initialized."
+    echo ""
 fi
 
-# ========================================
-# Step 3: Show Plan
-# ========================================
-
-echo -e "${BLUE}📋 Previewing infrastructure changes...${NC}\n"
+# Show infrastructure plan
+echo "Previewing infrastructure changes..."
+echo ""
 terraform plan
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Terraform plan failed.${NC}"
+    echo "ERROR: Terraform plan failed."
     exit 1
 fi
 
-# ========================================
-# Step 4: Confirm Deployment
-# ========================================
-
-echo -e "\n${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}⚠️  Ready to deploy infrastructure to GCP${NC}"
-echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e ""
+# Confirm deployment
+echo ""
+echo "================================================================================"
+echo " Ready to deploy infrastructure"
+echo "================================================================================"
+echo ""
 read -p "Continue with deployment? (yes/no): " confirm
 
 if [ "$confirm" != "yes" ]; then
-    echo -e "${RED}❌ Deployment cancelled.${NC}"
+    echo "Deployment cancelled."
     exit 0
 fi
 
-# ========================================
-# Step 5: Apply Configuration
-# ========================================
-
-echo -e "\n${GREEN}🏗️  Deploying infrastructure...${NC}\n"
+# Deploy infrastructure
+echo ""
+echo "Deploying infrastructure..."
+echo ""
 terraform apply -auto-approve
 
 if [ $? -eq 0 ]; then
-    echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${GREEN}🎉 Deployment successful!${NC}"
-    echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-    
-    echo -e "${CYAN}📊 Deployment Summary:${NC}\n"
+    echo ""
+    echo "================================================================================"
+    echo " Deployment Complete"
+    echo "================================================================================"
+    echo ""
+    echo "Deployment summary:"
     terraform output
-    
-    echo -e "\n${CYAN}💡 Quick Test:${NC}"
-    echo -e "curl \$(terraform output -raw service_url)\n"
+    echo ""
+    echo "Test your service:"
+    echo "  curl \$(terraform output -raw service_url)"
+    echo ""
 else
-    echo -e "\n${RED}❌ Deployment failed. Check errors above.${NC}"
+    echo ""
+    echo "ERROR: Deployment failed. Check errors above."
     exit 1
 fi
-

@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 """
-Interactive setup script for GCP Cloud Run deployment.
-Collects user configuration and generates Terraform variables file.
+Data Commons Cloud Run Deployment Configuration
 
-Features:
-- Beautiful terminal UI with Rich library
-- Interactive prompts with Questionary
-- Real-time input validation
-- GCP project access verification
-- Configuration summary and confirmation
+Interactive configuration tool for GCP Cloud Run deployment.
+Validates inputs and generates Terraform variable files.
 """
 
 import os
@@ -17,7 +12,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Try to import required libraries
 try:
     import questionary
     from questionary import ValidationError, Validator
@@ -26,34 +20,33 @@ try:
     from rich.progress import Progress, SpinnerColumn, TextColumn
     from rich.table import Table
 except ImportError:
-    print("❌ Required dependencies not found. Installing...")
+    print("Installing required dependencies...")
     subprocess.check_call([
-        sys.executable, "-m", "pip", "install", "-r", "requirements.txt"
+        sys.executable, "-m", "pip", "install", 
+        "-q", "-r", "requirements.txt"
     ])
-    print("✅ Dependencies installed. Please run the script again.")
-    sys.exit(0)
+    import questionary
+    from questionary import ValidationError, Validator
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.progress import Progress, SpinnerColumn, TextColumn
+    from rich.table import Table
 
 console = Console()
 
-
-# ========================================
-# Custom Validators
-# ========================================
 
 class GCPProjectIDValidator(Validator):
     """Validates GCP project ID format."""
     
     def validate(self, document):
         text = document.text
-        # GCP project IDs: 6-30 chars, lowercase letters, numbers, hyphens
-        # Must start with letter, cannot end with hyphen
         pattern = r'^[a-z][a-z0-9-]{4,28}[a-z0-9]$'
         
         if not re.match(pattern, text):
             raise ValidationError(
                 message="Invalid project ID format. Must be 6-30 characters, "
-                        "lowercase letters, numbers, hyphens only. "
-                        "Start with letter, no trailing hyphen.",
+                        "lowercase letters, numbers, and hyphens only. "
+                        "Must start with a letter.",
                 cursor_position=len(text)
             )
 
@@ -63,83 +56,55 @@ class ServiceNameValidator(Validator):
     
     def validate(self, document):
         text = document.text
-        # Cloud Run names: 1-63 chars, lowercase, numbers, hyphens
-        # Must start/end with alphanumeric
         pattern = r'^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$|^[a-z0-9]$'
         
         if not re.match(pattern, text):
             raise ValidationError(
                 message="Invalid service name. Must be 1-63 characters, "
-                        "lowercase letters, numbers, hyphens. "
-                        "Start and end with alphanumeric character.",
+                        "lowercase letters, numbers, and hyphens. "
+                        "Must start and end with alphanumeric character.",
                 cursor_position=len(text)
             )
 
 
-# ========================================
-# Helper Functions
-# ========================================
-
-def check_gcloud_auth():
-    """Check if gcloud is authenticated."""
-    try:
-        result = subprocess.run(
-            ["gcloud", "auth", "list", "--filter=status:ACTIVE", 
-             "--format=value(account)"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return bool(result.stdout.strip())
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
-
-
 def get_available_regions():
-    """Get list of available GCP regions for Cloud Run."""
+    """Return list of available GCP regions for Cloud Run."""
     return [
-        "us-central1 (Iowa)",
-        "us-east1 (South Carolina)",
-        "us-east4 (Virginia)",
-        "us-west1 (Oregon)",
-        "europe-west1 (Belgium)",
-        "europe-west4 (Netherlands)",
-        "asia-east1 (Taiwan)",
-        "asia-northeast1 (Tokyo)",
-        "asia-southeast1 (Singapore)",
+        "us-central1",
+        "us-east1",
+        "us-east4",
+        "us-west1",
+        "europe-west1",
+        "europe-west4",
+        "asia-east1",
+        "asia-northeast1",
+        "asia-southeast1",
     ]
 
 
 def verify_project_access(project_id):
-    """Verify user has access to the specified project."""
+    """Verify user has access to the specified GCP project."""
     try:
-        result = subprocess.run(
+        subprocess.run(
             ["gcloud", "projects", "describe", project_id],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
+            timeout=10
         )
         return True
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
         return False
 
 
 def generate_tfvars(config):
     """Generate terraform.tfvars file from configuration."""
-    tfvars_content = f"""# Auto-generated by setup.py
-# GCP Cloud Run Nginx Deployment Configuration
-
+    tfvars_content = f"""# Generated configuration for Data Commons deployment
 project_id = "{config['project_id']}"
 service_name = "{config['service_name']}"
 region = "{config['region']}"
 allow_unauthenticated = {str(config['allow_unauthenticated']).lower()}
-
-# Container Configuration
 container_image = "gcr.io/cloudrun/hello"
-
-# Optional: Customize resource limits
-# cpu_limit = "1000m"
-# memory_limit = "256Mi"
 """
     
     tfvars_path = Path("terraform/terraform.tfvars")
@@ -149,163 +114,137 @@ container_image = "gcr.io/cloudrun/hello"
     return tfvars_path
 
 
-# ========================================
-# Main Setup Flow
-# ========================================
-
 def main():
-    """Main interactive setup flow."""
+    """Main configuration workflow."""
     
-    # Display welcome banner
     console.print()
     console.print(Panel.fit(
-        "[bold cyan]🚀 GCP Cloud Run Nginx Deployment Setup[/bold cyan]\n\n"
-        "This interactive script will help you configure your deployment.\n"
-        "We'll collect necessary information and generate Terraform configuration.",
-        border_style="cyan"
+        "[bold]Data Commons Deployment Configuration[/bold]\n\n"
+        "This tool will configure your Cloud Run deployment.\n"
+        "All inputs are validated before proceeding.",
+        border_style="blue"
     ))
     console.print()
     
-    # Check gcloud authentication
-    if not check_gcloud_auth():
-        console.print("❌ [red]No active gcloud authentication found.[/red]")
-        console.print("   Run: [yellow]gcloud auth login[/yellow]")
-        sys.exit(1)
-    
-    console.print("✅ [green]gcloud authentication verified[/green]\n")
-    
-    # Collect configuration
     config = {}
     
-    # 1. Project ID
+    # Project ID
     console.print("[bold]Step 1:[/bold] GCP Project Configuration")
     config['project_id'] = questionary.text(
-        "Enter your GCP Project ID:",
+        "Enter GCP Project ID:",
         validate=GCPProjectIDValidator,
-        instruction="(e.g., my-project-12345)"
+        instruction="Example: my-project-12345"
     ).ask()
     
     if not config['project_id']:
-        console.print("❌ Setup cancelled.")
+        console.print("Configuration cancelled.")
         sys.exit(0)
     
     # Verify project access
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
-        console=console
+        console=console,
+        transient=True
     ) as progress:
-        task = progress.add_task("Verifying project access...", total=None)
+        progress.add_task("Verifying project access...", total=None)
         
         if not verify_project_access(config['project_id']):
-            progress.stop()
-            console.print(f"❌ [red]Cannot access project: {config['project_id']}[/red]")
-            console.print("   Make sure:")
-            console.print("   • Project ID is correct")
-            console.print("   • You have necessary permissions")
-            console.print("   • Billing is enabled")
+            console.print(f"[red]Cannot access project: {config['project_id']}[/red]")
+            console.print("Ensure project ID is correct and you have necessary permissions.")
             sys.exit(1)
-        
-        progress.update(task, completed=True)
     
-    console.print(f"✅ [green]Project access verified: {config['project_id']}[/green]\n")
+    console.print(f"[green]Project verified: {config['project_id']}[/green]\n")
     
-    # 2. Service Name
-    console.print("[bold]Step 2:[/bold] Cloud Run Service Configuration")
+    # Service Name
+    console.print("[bold]Step 2:[/bold] Service Configuration")
     config['service_name'] = questionary.text(
         "Enter service name:",
-        default="nginx-demo",
+        default="datacommons-service",
         validate=ServiceNameValidator,
-        instruction="(lowercase, alphanumeric, hyphens only)"
+        instruction="Lowercase alphanumeric and hyphens only"
     ).ask()
     
     if not config['service_name']:
-        console.print("❌ Setup cancelled.")
+        console.print("Configuration cancelled.")
         sys.exit(0)
     
-    # 3. Region
+    # Region
     console.print()
-    region_choice = questionary.select(
+    config['region'] = questionary.select(
         "Select deployment region:",
         choices=get_available_regions(),
-        instruction="(choose region closest to your users)"
+        instruction="Choose region closest to your users"
     ).ask()
     
-    if not region_choice:
-        console.print("❌ Setup cancelled.")
+    if not config['region']:
+        console.print("Configuration cancelled.")
         sys.exit(0)
     
-    # Extract region code from selection (e.g., "us-central1 (Iowa)" -> "us-central1")
-    config['region'] = region_choice.split(' ')[0]
-    
-    # 4. Public Access
+    # Access Control
     console.print()
     console.print("[bold]Step 3:[/bold] Access Configuration")
     config['allow_unauthenticated'] = questionary.confirm(
-        "Allow unauthenticated (public) access?",
+        "Allow public (unauthenticated) access?",
         default=True,
-        instruction="(If 'No', only authenticated requests allowed)"
+        instruction="If no, only authenticated requests will be allowed"
     ).ask()
     
     if config['allow_unauthenticated'] is None:
-        console.print("❌ Setup cancelled.")
+        console.print("Configuration cancelled.")
         sys.exit(0)
     
-    # Display configuration summary
+    # Display summary
     console.print()
     console.print(Panel.fit(
-        "[bold]📋 Configuration Summary[/bold]",
+        "[bold]Configuration Summary[/bold]",
         border_style="green"
     ))
     
     table = Table(show_header=False, box=None, padding=(0, 2))
     table.add_column("Setting", style="cyan", no_wrap=True)
-    table.add_column("Value", style="yellow")
+    table.add_column("Value", style="white")
     
     table.add_row("Project ID", config['project_id'])
     table.add_row("Service Name", config['service_name'])
     table.add_row("Region", config['region'])
     table.add_row(
         "Public Access", 
-        "✅ Yes" if config['allow_unauthenticated'] else "❌ No (authenticated only)"
+        "Yes" if config['allow_unauthenticated'] else "No (authenticated only)"
     )
     
     console.print(table)
     console.print()
     
-    # Confirm configuration
+    # Confirm
     proceed = questionary.confirm(
         "Proceed with this configuration?",
         default=True
     ).ask()
     
     if not proceed:
-        console.print("❌ Setup cancelled.")
+        console.print("Configuration cancelled.")
         sys.exit(0)
     
-    # Generate terraform.tfvars
-    console.print()
+    # Generate configuration file
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
-        console=console
+        console=console,
+        transient=True
     ) as progress:
-        task = progress.add_task("Generating Terraform configuration...", total=None)
+        progress.add_task("Generating configuration...", total=None)
         tfvars_path = generate_tfvars(config)
-        progress.update(task, completed=True)
     
-    console.print(f"✅ [green]Configuration saved to: {tfvars_path}[/green]")
-    
-    # Display next steps
+    console.print(f"[green]Configuration saved to: {tfvars_path}[/green]")
     console.print()
     console.print(Panel.fit(
-        "[bold green]🎉 Setup Complete![/bold green]\n\n"
-        "[bold]Next steps:[/bold]\n"
-        "1. Review configuration: [cyan]cat terraform/terraform.tfvars[/cyan]\n"
-        "2. Initialize Terraform: [cyan]cd terraform && terraform init[/cyan]\n"
-        "3. Preview changes: [cyan]terraform plan[/cyan]\n"
-        "4. Deploy infrastructure: [cyan]terraform apply[/cyan]\n\n"
-        "Or continue with the tutorial by clicking [bold]Next[/bold].",
+        "[bold green]Configuration Complete[/bold green]\n\n"
+        "Next steps:\n"
+        "  cd terraform\n"
+        "  terraform init\n"
+        "  terraform apply\n\n"
+        "Or follow the tutorial for guided deployment.",
         border_style="green"
     ))
     console.print()
@@ -315,9 +254,8 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        console.print("\n\n❌ Setup cancelled by user.")
+        console.print("\n\nConfiguration cancelled by user.")
         sys.exit(0)
     except Exception as e:
-        console.print(f"\n\n❌ [red]Error: {e}[/red]")
+        console.print(f"\n\n[red]Error: {e}[/red]")
         sys.exit(1)
-
