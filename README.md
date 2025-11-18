@@ -1,63 +1,69 @@
 # Data Commons Cloud Run Deployment
 
-Production-ready automated deployment of Data Commons service on Google Cloud Run using Terraform.
+Fully automated deployment tool for Data Commons service on Google Cloud Run. No terminal commands needed - just answer a few questions and everything is deployed automatically.
 
 ## Quick Start
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md)
 
-Click the button above to deploy in Google Cloud Shell. The deployment process is fully automated with an interactive configuration interface.
+Click the button above. The deployment tool will start automatically and guide you through:
+
+1. Project and service configuration (4 questions)
+2. Automated infrastructure deployment
+3. Service URL retrieval
+
+**Total time:** 3-5 minutes. No commands to type.
 
 ## What Gets Deployed
 
-- **Cloud Run Service**: Serverless container platform with auto-scaling
+- **Cloud Run Service**: Serverless container platform with auto-scaling (0-10 instances)
 - **Container Image**: nginx web server (configurable)
 - **IAM Configuration**: Public or authenticated access
 - **HTTPS Endpoint**: Automatic SSL certificate provisioning
 
 **Estimated Cost**: $0.00/month (within GCP free tier for low traffic)
 
+## How It Works
+
+The deployment tool automatically:
+
+1. Validates your configuration inputs
+2. Generates Terraform configuration files
+3. Initializes Terraform
+4. Plans infrastructure changes
+5. Deploys to Google Cloud Run
+6. Retrieves and displays the service URL
+
+No manual terminal commands required.
+
 ## Prerequisites
 
 - Google Cloud Project with billing enabled
 - Required IAM permissions: `roles/run.admin`, `roles/iam.serviceAccountUser`
 
-Cloud Shell provides automatic authentication. No additional setup required.
+Cloud Shell provides automatic authentication.
 
-## Manual Deployment (Local)
+## Manual Deployment (Optional)
 
-If deploying from local environment:
+If you prefer to run manually:
 
 ```bash
-# Clone repository
 git clone https://github.com/Arturio93/shell-test.git
 cd shell-test
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run configuration
 python setup.py
-
-# Deploy infrastructure
-cd terraform
-terraform init
-terraform apply
-
-# Get service URL
-terraform output service_url
 ```
 
-## Configuration
+The tool handles everything - no need to run terraform commands manually.
 
-The interactive setup collects:
+## Configuration Options
 
-- **Project ID**: GCP project for resource deployment
-- **Service Name**: Cloud Run service identifier
-- **Region**: Deployment region (us-central1, europe-west1, etc.)
+During setup, you'll be asked for:
+
+- **Project ID**: GCP project identifier (validated format)
+- **Service Name**: Cloud Run service name (DNS-compliant)
+- **Region**: Deployment region (select from list)
 - **Access Control**: Public or authenticated access
-
-Configuration is validated and stored in `terraform/terraform.tfvars`.
 
 ## Architecture
 
@@ -73,26 +79,11 @@ CPU: 1 vCPU (1000m)
 Memory: 256 MiB
 ```
 
-## Resource Cleanup
-
-To remove all deployed resources:
-
-```bash
-./cleanup.sh
-```
-
-Or manually:
-
-```bash
-cd terraform
-terraform destroy
-```
-
 ## Customization
 
-### Container Image
+To customize the deployment, edit `terraform/variables.tf`:
 
-Edit `terraform/variables.tf`:
+### Container Image
 
 ```hcl
 variable "container_image" {
@@ -101,8 +92,6 @@ variable "container_image" {
 ```
 
 ### Resource Limits
-
-Edit `terraform/variables.tf`:
 
 ```hcl
 variable "cpu_limit" {
@@ -114,9 +103,59 @@ variable "memory_limit" {
 }
 ```
 
+## Resource Cleanup
+
+After deployment, the tool displays cleanup instructions:
+
+```bash
+cd terraform
+terraform destroy
+```
+
+Or use the cleanup script:
+
+```bash
+./cleanup.sh
+```
+
+## Troubleshooting
+
+### Authentication Issues
+
+If you see OAuth errors, the deployment tool will automatically refresh authentication tokens.
+
+### Permission Errors
+
+Ensure your account has required permissions:
+
+```bash
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="user:YOUR_EMAIL@example.com" \
+  --role="roles/run.admin"
+```
+
+### API Not Enabled
+
+Enable required APIs:
+
+```bash
+gcloud services enable run.googleapis.com
+```
+
+## Features
+
+- **Zero Command Line**: No terminal commands needed
+- **Input Validation**: All inputs validated before deployment
+- **Progress Indicators**: Visual feedback during deployment
+- **Error Handling**: Clear error messages with solutions
+- **Automatic Retry**: Authentication refresh on OAuth errors
+- **Professional UI**: 3D ASCII art banner and formatted output
+
 ## Support
 
-For issues or questions, consult the [Cloud Run Documentation](https://cloud.google.com/run/docs) or [Terraform GCP Provider Documentation](https://registry.terraform.io/providers/hashicorp/google/latest/docs).
+For issues or questions:
+- [Cloud Run Documentation](https://cloud.google.com/run/docs)
+- [Terraform GCP Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
 
 ## License
 

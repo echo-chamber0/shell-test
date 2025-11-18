@@ -13,13 +13,14 @@ echo "Repository cloned successfully."
 echo "Tutorial available in the right panel."
 echo ""
 
-# Install dependencies silently in background
+# Install dependencies silently
 echo "Installing dependencies..."
 pip install -r requirements.txt --quiet 2>&1 | grep -v "Requirement already satisfied" || true
 echo "Dependencies installed."
 echo ""
 
-# Auto-start configuration
-echo "Starting deployment configuration..."
+# Auto-start fully automated deployment
+echo "Starting automated deployment tool..."
+echo "Answer a few questions and everything will be deployed automatically."
 echo ""
 python setup.py

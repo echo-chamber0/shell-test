@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-Data Commons Cloud Run Deployment Configuration
+Data Commons Cloud Run Deployment Tool
 
-Interactive configuration tool for GCP Cloud Run deployment.
-Validates inputs and generates Terraform variable files.
+Fully automated deployment tool - user only selects options,
+everything else is handled automatically including Terraform execution.
 """
 
 import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 try:
@@ -17,10 +18,12 @@ try:
     from questionary import ValidationError, Validator
     from rich.console import Console
     from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
     from rich.table import Table
     from rich.text import Text
     from rich import box
+    from rich.live import Live
+    from rich.layout import Layout
 except ImportError:
     print("Installing required dependencies...")
     subprocess.check_call([
@@ -31,10 +34,12 @@ except ImportError:
     from questionary import ValidationError, Validator
     from rich.console import Console
     from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
     from rich.table import Table
     from rich.text import Text
     from rich import box
+    from rich.live import Live
+    from rich.layout import Layout
 
 console = Console()
 
@@ -59,25 +64,21 @@ def print_welcome_banner():
          ╚═════╝╚══════╝ ╚═════╝  ╚═════╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
     """
     
-    # Print banner with gradient effect
     console.print(banner, style="bold cyan", highlight=False)
     console.print(subtitle, style="bold blue", highlight=False)
     console.print()
-    
-    # Subtitle text
     console.print("    " + "═" * 90, style="dim blue")
-    console.print("                          INTERACTIVE DEPLOYMENT CONFIGURATION", style="bold white")
+    console.print("                       AUTOMATED DEPLOYMENT TOOL - NO COMMANDS NEEDED", style="bold white")
     console.print("    " + "═" * 90, style="dim blue")
     console.print()
     
-    # Description panel
     description = Text()
-    description.append("This tool will guide you through configuring your Cloud Run deployment.\n\n", style="white")
-    description.append("What you'll configure:\n", style="bold cyan")
-    description.append("  • GCP Project and Region\n", style="white")
-    description.append("  • Service Configuration\n", style="white")
-    description.append("  • Access Control Settings\n", style="white")
-    description.append("\nAll inputs are validated to ensure correct deployment.", style="dim white")
+    description.append("This tool handles everything automatically:\n\n", style="white")
+    description.append("  ✓ Configuration collection and validation\n", style="green")
+    description.append("  ✓ Terraform initialization and planning\n", style="green")
+    description.append("  ✓ Infrastructure deployment\n", style="green")
+    description.append("  ✓ Service URL retrieval\n\n", style="green")
+    description.append("You only need to answer a few questions. Everything else is automated.", style="dim white")
     
     console.print(Panel(
         description,
@@ -135,10 +136,35 @@ def get_available_regions():
     ]
 
 
+def ensure_gcloud_auth():
+    """Ensure gcloud is properly authenticated."""
+    try:
+        # Try to get the current account
+        result = subprocess.run(
+            ["gcloud", "auth", "list", "--filter=status:ACTIVE", "--format=value(account)"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        if result.returncode == 0 and result.stdout.strip():
+            return True
+        
+        # If not authenticated, try to refresh
+        console.print("[yellow]Refreshing authentication...[/yellow]")
+        subprocess.run(
+            ["gcloud", "auth", "application-default", "login", "--no-launch-browser"],
+            check=False
+        )
+        return True
+    except Exception:
+        return True  # Continue anyway in Cloud Shell
+
+
 def verify_project_access(project_id):
     """Verify user has access to the specified GCP project."""
     try:
-        subprocess.run(
+        result = subprocess.run(
             ["gcloud", "projects", "describe", project_id],
             capture_output=True,
             text=True,
@@ -146,15 +172,28 @@ def verify_project_access(project_id):
             timeout=10
         )
         return True
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+    except Exception:
         return False
+
+
+def run_command(cmd, cwd=None, description="Running command"):
+    """Run a command and return success status."""
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return True, result.stdout
+    except subprocess.CalledProcessError as e:
+        return False, e.stderr
 
 
 def generate_tfvars(config):
     """Generate terraform.tfvars file from configuration."""
     tfvars_content = f"""# Generated configuration for Data Commons deployment
-# Generated by: setup.py
-
 project_id = "{config['project_id']}"
 service_name = "{config['service_name']}"
 region = "{config['region']}"
@@ -171,29 +210,26 @@ container_image = "gcr.io/cloudrun/hello"
 
 def print_step_header(step_number, title):
     """Print formatted step header."""
+    console.print()
     step_text = Text()
-    step_text.append(f"\n[Step {step_number}] ", style="bold cyan")
+    step_text.append(f"[Step {step_number}] ", style="bold cyan")
     step_text.append(title, style="bold white")
     console.print(step_text)
     console.print("─" * 60, style="dim blue")
 
 
-def print_success_message(message):
-    """Print success message with checkmark."""
+def print_success(message):
+    """Print success message."""
     console.print(f"  ✓ {message}", style="green")
 
 
-def print_error_message(message):
-    """Print error message with X mark."""
+def print_error(message):
+    """Print error message."""
     console.print(f"  ✗ {message}", style="red")
 
 
-def main():
-    """Main configuration workflow."""
-    
-    # Display welcome banner
-    print_welcome_banner()
-    
+def collect_configuration():
+    """Collect configuration from user."""
     config = {}
     
     # Step 1: Project ID
@@ -210,10 +246,9 @@ def main():
     ).ask()
     
     if not config['project_id']:
-        console.print("\n[yellow]Configuration cancelled by user.[/yellow]\n")
-        sys.exit(0)
+        return None
     
-    # Verify project access
+    # Verify project
     console.print()
     with Progress(
         SpinnerColumn(style="cyan"),
@@ -221,19 +256,16 @@ def main():
         console=console,
         transient=True
     ) as progress:
-        task = progress.add_task("Verifying project access...", total=None)
+        progress.add_task("Verifying project access...", total=None)
         
         if not verify_project_access(config['project_id']):
             console.print()
-            print_error_message(f"Cannot access project: {config['project_id']}")
+            print_error(f"Cannot access project: {config['project_id']}")
             console.print("\n  [dim]Ensure project ID is correct and you have necessary permissions.[/dim]\n")
-            sys.exit(1)
-        
-        progress.update(task, completed=True)
+            return None
     
     console.print()
-    print_success_message(f"Project verified: {config['project_id']}")
-    console.print()
+    print_success(f"Project verified: {config['project_id']}")
     
     # Step 2: Service Name
     print_step_header(2, "Service Configuration")
@@ -250,11 +282,10 @@ def main():
     ).ask()
     
     if not config['service_name']:
-        console.print("\n[yellow]Configuration cancelled by user.[/yellow]\n")
-        sys.exit(0)
+        return None
     
     console.print()
-    print_success_message(f"Service name: {config['service_name']}")
+    print_success(f"Service name: {config['service_name']}")
     
     # Step 3: Region
     print_step_header(3, "Deployment Region")
@@ -265,19 +296,16 @@ def main():
         choices=get_available_regions(),
         style=questionary.Style([
             ('question', 'bold cyan'),
-            ('highlighted', 'bold white on blue'),
+            ('highlighted', 'bg:#0066cc fg:#ffffff bold'),
         ])
     ).ask()
     
     if not region_choice:
-        console.print("\n[yellow]Configuration cancelled by user.[/yellow]\n")
-        sys.exit(0)
+        return None
     
-    # Extract region code from selection
     config['region'] = region_choice.split(' ')[0]
-    
     console.print()
-    print_success_message(f"Region: {region_choice}")
+    print_success(f"Region: {region_choice}")
     
     # Step 4: Access Control
     print_step_header(4, "Access Control")
@@ -293,31 +321,73 @@ def main():
     ).ask()
     
     if config['allow_unauthenticated'] is None:
-        console.print("\n[yellow]Configuration cancelled by user.[/yellow]\n")
-        sys.exit(0)
+        return None
     
     console.print()
     access_status = "Public access enabled" if config['allow_unauthenticated'] else "Authenticated access only"
-    print_success_message(access_status)
+    print_success(access_status)
+    
+    return config
+
+
+def deploy_infrastructure(config):
+    """Deploy infrastructure using Terraform."""
+    console.print()
+    console.print()
+    console.print("═" * 90, style="bold blue")
+    console.print("                          AUTOMATED DEPLOYMENT STARTING", style="bold white")
+    console.print("═" * 90, style="bold blue")
     console.print()
     
-    # Display configuration summary
-    console.print()
-    summary_panel = Panel(
-        _create_summary_table(config),
-        title="[bold white]Configuration Summary[/bold white]",
-        border_style="green",
-        box=box.DOUBLE,
-        padding=(1, 2)
+    terraform_dir = Path("terraform")
+    
+    # Ensure authentication is fresh
+    ensure_gcloud_auth()
+    
+    # Step 1: Generate configuration
+    console.print("[bold cyan]Stage 1:[/bold cyan] Generating Terraform configuration...")
+    tfvars_path = generate_tfvars(config)
+    print_success(f"Configuration saved: {tfvars_path}")
+    time.sleep(0.5)
+    
+    # Step 2: Initialize Terraform
+    console.print("\n[bold cyan]Stage 2:[/bold cyan] Initializing Terraform...")
+    success, output = run_command(
+        ["terraform", "init", "-upgrade"],
+        cwd=terraform_dir,
+        description="terraform init"
     )
-    console.print(summary_panel)
-    console.print()
     
-    # Confirm configuration
+    if not success:
+        print_error("Terraform initialization failed")
+        console.print(f"\n[red]{output}[/red]\n")
+        return False
+    
+    print_success("Terraform initialized successfully")
+    time.sleep(0.5)
+    
+    # Step 3: Terraform Plan
+    console.print("\n[bold cyan]Stage 3:[/bold cyan] Planning infrastructure changes...")
+    success, output = run_command(
+        ["terraform", "plan", "-out=tfplan"],
+        cwd=terraform_dir,
+        description="terraform plan"
+    )
+    
+    if not success:
+        print_error("Terraform plan failed")
+        console.print(f"\n[red]{output}[/red]\n")
+        return False
+    
+    print_success("Infrastructure plan created")
+    console.print("\n[dim]Review: Cloud Run service will be created in", config['region'] + "[/dim]")
+    time.sleep(1)
+    
+    # Step 4: Confirm deployment
+    console.print()
     proceed = questionary.confirm(
-        "Proceed with this configuration?",
+        "Deploy infrastructure now?",
         default=True,
-        auto_enter=False,
         style=questionary.Style([
             ('question', 'bold yellow'),
             ('answer', 'bold white'),
@@ -325,75 +395,139 @@ def main():
     ).ask()
     
     if not proceed:
-        console.print("\n[yellow]Configuration cancelled by user.[/yellow]\n")
-        sys.exit(0)
+        console.print("\n[yellow]Deployment cancelled by user.[/yellow]\n")
+        return False
     
-    # Generate configuration file
-    console.print()
+    # Step 5: Apply
+    console.print("\n[bold cyan]Stage 4:[/bold cyan] Deploying infrastructure...")
+    console.print("[dim]This may take 60-90 seconds...[/dim]\n")
+    
     with Progress(
         SpinnerColumn(style="cyan"),
         TextColumn("[cyan]{task.description}[/cyan]"),
-        console=console,
-        transient=True
+        BarColumn(complete_style="green", finished_style="green"),
+        console=console
     ) as progress:
-        task = progress.add_task("Generating Terraform configuration...", total=None)
-        tfvars_path = generate_tfvars(config)
-        progress.update(task, completed=True)
+        task = progress.add_task("Deploying Cloud Run service...", total=100)
+        
+        # Run terraform apply
+        process = subprocess.Popen(
+            ["terraform", "apply", "-auto-approve", "tfplan"],
+            cwd=terraform_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+        # Simulate progress
+        for i in range(100):
+            time.sleep(0.8)
+            progress.update(task, advance=1)
+            if process.poll() is not None:
+                break
+        
+        process.wait()
+        
+        if process.returncode != 0:
+            progress.stop()
+            console.print()
+            print_error("Deployment failed")
+            stderr = process.stderr.read()
+            console.print(f"\n[red]{stderr}[/red]\n")
+            return False
     
     console.print()
-    print_success_message(f"Configuration saved: {tfvars_path}")
-    console.print()
+    print_success("Infrastructure deployed successfully")
     
-    # Display next steps
-    next_steps = Text()
-    next_steps.append("\nNext Steps:\n\n", style="bold white")
-    next_steps.append("  1. ", style="cyan")
-    next_steps.append("Initialize Terraform:  ", style="white")
-    next_steps.append("cd terraform && terraform init\n", style="bold yellow")
-    next_steps.append("  2. ", style="cyan")
-    next_steps.append("Review changes:       ", style="white")
-    next_steps.append("terraform plan\n", style="bold yellow")
-    next_steps.append("  3. ", style="cyan")
-    next_steps.append("Deploy infrastructure: ", style="white")
-    next_steps.append("terraform apply\n", style="bold yellow")
-    next_steps.append("\n  Or follow the tutorial in the right panel for guided deployment.\n", style="dim white")
+    # Step 6: Get service URL
+    console.print("\n[bold cyan]Stage 5:[/bold cyan] Retrieving service information...")
+    success, url = run_command(
+        ["terraform", "output", "-raw", "service_url"],
+        cwd=terraform_dir
+    )
+    
+    if success and url.strip():
+        console.print()
+        console.print("═" * 90, style="bold green")
+        console.print("                          DEPLOYMENT COMPLETE", style="bold white")
+        console.print("═" * 90, style="bold green")
+        console.print()
+        
+        # Display results
+        result_panel = f"""
+[bold white]Your service is now live![/bold white]
+
+[bold cyan]Service URL:[/bold cyan]
+  {url.strip()}
+
+[bold cyan]Quick Commands:[/bold cyan]
+  Test service:  curl {url.strip()}
+  View logs:     gcloud logging read "resource.labels.service_name={config['service_name']}" --limit=20
+  View service:  gcloud run services describe {config['service_name']} --region={config['region']}
+
+[bold yellow]Cleanup:[/bold yellow]
+  To remove resources: cd terraform && terraform destroy
+"""
+        
+        console.print(Panel(
+            result_panel,
+            border_style="green",
+            box=box.DOUBLE,
+            padding=(1, 2)
+        ))
+        console.print()
+        return True
+    
+    return True
+
+
+def main():
+    """Main deployment workflow."""
+    print_welcome_banner()
+    
+    # Collect configuration
+    config = collect_configuration()
+    
+    if not config:
+        console.print("\n[yellow]Configuration cancelled.[/yellow]\n")
+        sys.exit(0)
+    
+    # Show summary
+    console.print()
+    summary_table = Table(show_header=False, box=None, padding=(0, 2))
+    summary_table.add_column("Setting", style="cyan", width=20)
+    summary_table.add_column("Value", style="white")
+    
+    summary_table.add_row("Project ID", config['project_id'])
+    summary_table.add_row("Service Name", config['service_name'])
+    summary_table.add_row("Region", config['region'])
+    summary_table.add_row(
+        "Public Access",
+        "Yes (Public)" if config['allow_unauthenticated'] else "No (Authenticated only)"
+    )
     
     console.print(Panel(
-        next_steps,
-        title="[bold green]Configuration Complete[/bold green]",
-        border_style="green",
+        summary_table,
+        title="[bold white]Configuration Summary[/bold white]",
+        border_style="blue",
         box=box.ROUNDED,
         padding=(1, 2)
     ))
-    console.print()
-
-
-def _create_summary_table(config):
-    """Create formatted summary table."""
-    table = Table(
-        show_header=False,
-        box=None,
-        padding=(0, 2),
-        expand=False
-    )
-    table.add_column("Setting", style="cyan", no_wrap=True, width=20)
-    table.add_column("Value", style="white")
     
-    table.add_row("Project ID", config['project_id'])
-    table.add_row("Service Name", config['service_name'])
-    table.add_row("Region", config['region'])
+    # Deploy
+    success = deploy_infrastructure(config)
     
-    access_text = "Yes (Public)" if config['allow_unauthenticated'] else "No (Authenticated only)"
-    table.add_row("Public Access", access_text)
-    
-    return table
+    if success:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        console.print("\n\n[yellow]Configuration cancelled by user.[/yellow]\n")
+        console.print("\n\n[yellow]Deployment cancelled by user.[/yellow]\n")
         sys.exit(0)
     except Exception as e:
         console.print(f"\n\n[red]Error: {e}[/red]\n")
