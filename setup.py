@@ -381,8 +381,15 @@ def collect_configuration():
     print_step_header(1, "GCP Project Configuration")
     console.print()
     
+    # Auto-detect project from Cloud Shell if available
+    detected_project = os.environ.get('DEVSHELL_PROJECT_ID', '').strip()
+    if detected_project:
+        console.print(f"[dim]Detected Cloud Shell project: {detected_project}[/dim]")
+        console.print()
+    
     config['project_id'] = questionary.text(
         "Enter your GCP Project ID:",
+        default=detected_project,  # Pre-fill if detected from Cloud Shell
         validate=GCPProjectIDValidator,
         style=questionary.Style([
             ('question', 'bold cyan'),

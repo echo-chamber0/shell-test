@@ -13,9 +13,9 @@ Click **Start** to begin the deployment process.
 
 ---
 1. simple
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?show=project_selector&cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?show=project_selector&cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_tutorial=tutorial.md)
 2. with hardcoded project 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_project=hl2-gogl-cdsi-t1iylu&cloudshell_git_repo=https://github.com/Arturio93/shell-test.git&cloudshell_tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_project=hl2-gogl-cdsi-t1iylu&cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_tutorial=tutorial.md)
 
 ## Overview: Google Cloud Run
 
