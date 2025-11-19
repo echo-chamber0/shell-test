@@ -438,20 +438,25 @@ def collect_configuration():
                 else:
                     # Show both ID and name
                     choice_text = f"{proj['id']} ({proj['name']})"
-                choices.append(questionary.Choice(title=choice_text, value=proj['id']))
-            
-            # Add manual entry option
-            choices.append(questionary.Choice(title="[Enter project ID manually]", value="__manual__"))
+                choices.append(choice_text)
             
             console.print(f"[cyan]Found {len(available_projects)} project(s) you have access to.[/cyan]")
+            
+            # Use autocomplete for better UX with many projects
+            if len(available_projects) > 10:
+                console.print("[dim]Type to filter, use arrow keys to select, or type full project ID[/dim]")
+            
             console.print()
             
-            selected = questionary.select(
-                "Select your GCP project:",
+            selected = questionary.autocomplete(
+                "Select your GCP project (type to filter):",
                 choices=choices,
-                default=detected_project if detected_project else None,
+                default=detected_project if detected_project else "",
+                validate=lambda text: True,  # Allow any text for manual entry
+                match_middle=True,  # Allow matching anywhere in the string
                 style=questionary.Style([
                     ('question', 'bold cyan'),
+                    ('answer', 'bold white'),
                     ('highlighted', 'bg:#0066cc fg:#ffffff bold'),
                 ])
             ).ask()
@@ -459,19 +464,13 @@ def collect_configuration():
             if not selected:
                 return None
             
-            if selected == "__manual__":
-                # User wants to enter manually
-                console.print()
-                config['project_id'] = questionary.text(
-                    "Enter your GCP Project ID:",
-                    validate=GCPProjectIDValidator,
-                    style=questionary.Style([
-                        ('question', 'bold cyan'),
-                        ('answer', 'bold white'),
-                    ])
-                ).ask()
+            # Extract project ID from selection (handle both "project-id" and "project-id (Name)" formats)
+            if ' (' in selected:
+                # Format: "project-id (Project Name)"
+                config['project_id'] = selected.split(' (')[0].strip()
             else:
-                config['project_id'] = selected
+                # Format: "project-id" or manually typed
+                config['project_id'] = selected.strip()
         else:
             # Only one project available
             single_project = available_projects[0]
