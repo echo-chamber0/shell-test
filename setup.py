@@ -572,26 +572,21 @@ def deploy_infrastructure(config):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,  # Combine stderr with stdout
             text=True,
-            bufsize=1,  # Line buffered
             env=terraform_env
         )
         
-        # Read output in real-time to prevent buffer blocking
-        output_lines = []
-        while True:
-            line = process.stdout.readline()
-            if line:
-                output_lines.append(line)
-            if process.poll() is not None:
-                # Process finished, read any remaining output
-                remaining = process.stdout.read()
-                if remaining:
-                    output_lines.append(remaining)
-                break
-            time.sleep(0.1)
-        
-        returncode = process.returncode
-        full_output = ''.join(output_lines)
+        # Wait for process to complete and get all output
+        # Using communicate() is more reliable than readline() loops
+        try:
+            full_output, _ = process.communicate(timeout=300)  # 5 minute timeout
+            returncode = process.returncode
+        except subprocess.TimeoutExpired:
+            process.kill()
+            full_output, _ = process.communicate()
+            progress.stop()
+            console.print()
+            print_error("Deployment timed out after 5 minutes")
+            return False
         
         if returncode != 0:
             progress.stop()
