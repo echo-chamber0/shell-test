@@ -162,7 +162,7 @@ def ensure_gcloud_auth(project_id):
         dict: Environment variables to use for Terraform commands
     """
     try:
-        # Set the active project
+        # Set the active project (default project)
         console.print(f"[dim]Setting active project: {project_id}[/dim]")
         subprocess.run(
             ["gcloud", "config", "set", "project", project_id],
@@ -171,7 +171,19 @@ def ensure_gcloud_auth(project_id):
             timeout=300
         )
         
-        # Get a fresh access token for Terraform
+        # Also set the billing/quota project (important for API calls)
+        subprocess.run(
+            ["gcloud", "config", "set", "billing/quota_project", project_id],
+            capture_output=True,
+            timeout=300
+        )
+        
+        # Unset any DEVSHELL_PROJECT_ID that might interfere
+        if 'DEVSHELL_PROJECT_ID' in os.environ:
+            # Don't delete it, but we'll override it in the environment we return
+            pass
+        
+        # Get a fresh access token for Terraform (now associated with correct project)
         result = subprocess.run(
             ["gcloud", "auth", "print-access-token"],
             capture_output=True,
@@ -182,12 +194,22 @@ def ensure_gcloud_auth(project_id):
         if result.returncode == 0 and result.stdout.strip():
             token = result.stdout.strip()
             
-            # Create environment with the token
+            # Create environment with the token and explicit project settings
             env = os.environ.copy()
             env['GOOGLE_OAUTH_ACCESS_TOKEN'] = token
+            env['GOOGLE_PROJECT'] = project_id
+            env['GCLOUD_PROJECT'] = project_id
+            env['GCP_PROJECT'] = project_id
+            env['CLOUDSDK_CORE_PROJECT'] = project_id
+            env['CLOUDSDK_BILLING_QUOTA_PROJECT'] = project_id
+            # Override any Cloud Shell project ID
+            env['DEVSHELL_PROJECT_ID'] = project_id
             
             # Also set it globally for other uses
             os.environ['GOOGLE_OAUTH_ACCESS_TOKEN'] = token
+            os.environ['GOOGLE_PROJECT'] = project_id
+            os.environ['CLOUDSDK_CORE_PROJECT'] = project_id
+            os.environ['CLOUDSDK_BILLING_QUOTA_PROJECT'] = project_id
             
             console.print("[dim]Authentication verified[/dim]")
             return env
