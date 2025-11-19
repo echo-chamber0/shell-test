@@ -292,6 +292,39 @@ def check_gcloud_auth():
         return False
 
 
+def get_available_projects():
+    """Get list of GCP projects the user has access to."""
+    try:
+        result = subprocess.run(
+            ["gcloud", "projects", "list", "--format=value(projectId,name)"],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if result.returncode == 0 and result.stdout.strip():
+            projects = []
+            for line in result.stdout.strip().split('\n'):
+                if line.strip():
+                    parts = line.split('\t', 1)
+                    if len(parts) == 2:
+                        project_id, project_name = parts
+                        projects.append({
+                            'id': project_id.strip(),
+                            'name': project_name.strip()
+                        })
+                    else:
+                        # Only project ID, no name
+                        projects.append({
+                            'id': parts[0].strip(),
+                            'name': parts[0].strip()
+                        })
+            return projects
+        return []
+    except Exception:
+        return []
+
+
 def verify_project_access(project_id):
     """Verify user has access to the specified GCP project."""
     try:
@@ -383,19 +416,104 @@ def collect_configuration():
     
     # Auto-detect project from Cloud Shell if available
     detected_project = os.environ.get('DEVSHELL_PROJECT_ID', '').strip()
-    if detected_project:
-        console.print(f"[dim]Detected Cloud Shell project: {detected_project}[/dim]")
-        console.print()
     
-    config['project_id'] = questionary.text(
-        "Enter your GCP Project ID:",
-        default=detected_project,  # Pre-fill if detected from Cloud Shell
-        validate=GCPProjectIDValidator,
-        style=questionary.Style([
-            ('question', 'bold cyan'),
-            ('answer', 'bold white'),
-        ])
-    ).ask()
+    # Try to get list of available projects
+    console.print("[dim]Loading your GCP projects...[/dim]")
+    available_projects = get_available_projects()
+    console.print()
+    
+    if available_projects:
+        # User has multiple projects - let them choose
+        if detected_project:
+            console.print(f"[dim]Cloud Shell project detected: {detected_project}[/dim]")
+            console.print()
+        
+        # Build choice list with project IDs and names
+        if len(available_projects) > 1:
+            choices = []
+            for proj in available_projects:
+                if proj['id'] == proj['name']:
+                    # No separate name, just show ID
+                    choice_text = proj['id']
+                else:
+                    # Show both ID and name
+                    choice_text = f"{proj['id']} ({proj['name']})"
+                choices.append(questionary.Choice(title=choice_text, value=proj['id']))
+            
+            # Add manual entry option
+            choices.append(questionary.Choice(title="[Enter project ID manually]", value="__manual__"))
+            
+            console.print(f"[cyan]Found {len(available_projects)} project(s) you have access to.[/cyan]")
+            console.print()
+            
+            selected = questionary.select(
+                "Select your GCP project:",
+                choices=choices,
+                default=detected_project if detected_project else None,
+                style=questionary.Style([
+                    ('question', 'bold cyan'),
+                    ('highlighted', 'bg:#0066cc fg:#ffffff bold'),
+                ])
+            ).ask()
+            
+            if not selected:
+                return None
+            
+            if selected == "__manual__":
+                # User wants to enter manually
+                console.print()
+                config['project_id'] = questionary.text(
+                    "Enter your GCP Project ID:",
+                    validate=GCPProjectIDValidator,
+                    style=questionary.Style([
+                        ('question', 'bold cyan'),
+                        ('answer', 'bold white'),
+                    ])
+                ).ask()
+            else:
+                config['project_id'] = selected
+        else:
+            # Only one project available
+            single_project = available_projects[0]
+            console.print(f"[cyan]Found 1 project: {single_project['id']}[/cyan]")
+            console.print()
+            
+            use_detected = questionary.confirm(
+                f"Use project '{single_project['id']}'?",
+                default=True,
+                style=questionary.Style([
+                    ('question', 'bold cyan'),
+                    ('answer', 'bold white'),
+                ])
+            ).ask()
+            
+            if use_detected:
+                config['project_id'] = single_project['id']
+            else:
+                console.print()
+                config['project_id'] = questionary.text(
+                    "Enter your GCP Project ID:",
+                    validate=GCPProjectIDValidator,
+                    style=questionary.Style([
+                        ('question', 'bold cyan'),
+                        ('answer', 'bold white'),
+                    ])
+                ).ask()
+    else:
+        # No projects found or error - fall back to manual entry
+        if detected_project:
+            console.print(f"[dim]Detected Cloud Shell project: {detected_project}[/dim]")
+            console.print()
+        
+        config['project_id'] = questionary.text(
+            "Enter your GCP Project ID:",
+            default=detected_project,  # Pre-fill if detected from Cloud Shell
+            validate=GCPProjectIDValidator,
+            style=questionary.Style([
+                ('question', 'bold cyan'),
+                ('answer', 'bold white'),
+            ])
+        ).ask()
     
     if not config['project_id']:
         return None
