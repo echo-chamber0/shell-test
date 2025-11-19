@@ -72,7 +72,7 @@ Verify your environment (optional):
 ```bash
 gcloud config get-value project
 terraform version
-python3 --version
+python --version
 ```
 
 **Note:** If the deployment tool opened automatically in your terminal, you can switch between the terminal and this tutorial panel.
@@ -86,7 +86,7 @@ Click **Next** to run the deployment tool.
 If the deployment tool hasn't started automatically, run:
 
 ```bash
-python3 setup.py
+python setup.py
 ```
 
 **The tool will guide you through 4 configuration questions:**
@@ -195,7 +195,7 @@ Open configuration file
 </walkthrough-editor-open-file>
 
 **To modify configuration:**
-1. Re-run `python3 setup.py` from the project root
+1. Re-run `python setup.py` from the project root
 2. Or manually edit `terraform/terraform.tfvars` and run:
    ```bash
    cd terraform && terraform apply
@@ -256,7 +256,7 @@ To update your deployment with different settings:
 **Method 1: Re-run setup tool**
 ```bash
 cd ..  # Return to project root
-python3 setup.py
+python setup.py
 ```
 
 The tool will detect existing configuration and prompt for updates.
