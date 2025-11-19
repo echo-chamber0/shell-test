@@ -4,25 +4,20 @@ Fully automated deployment tool for Data Commons service on Google Cloud Run. No
 
 ## Quick Start
 
-Choose your experience:
-
-###  Quick Start
-
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_open_in_editor=deploy.ipynb&cloudshell_open_in_editor=QUICKSTART.md)
-
-Opens with:
-- **Terminal**: Automated deployment tool (answer 4 questions)
-- **Editor**: Interactive Jupyter notebook + Quick start guide
-- **Panel**: Full tutorial
-
-###  Alternative: Tutorial Mode
+###  One-Click Deployment
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_tutorial=tutorial.md&cloudshell_open_in_editor=QUICKSTART.md)
 
-Opens with:
-- **Terminal**: Automated deployment tool
-- **Editor**: Quick start guide
-- **Panel**: Step-by-step tutorial
+**What opens:**
+- **Right Panel**: Interactive tutorial with step-by-step guide
+- **Editor**: Quick reference guide (QUICKSTART.md)
+- **Terminal**: Automated deployment tool (already running)
+
+**Your experience:**
+1. Read the tutorial panel on the right →
+2. Answer 4 questions in the terminal below
+3. Wait 2-3 minutes for automatic deployment
+4. Get your service URL
 
 ---
 
