@@ -6,7 +6,7 @@ Fully automated deployment tool for Data Commons service on Google Cloud Run. No
 
 ###  One-Click Deployment
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_tutorial=tutorial.md&cloudshell_open_in_editor=WELCOME.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/echo-chamber0/shell-test.git&cloudshell_tutorial=tutorial.md&cloudshell_open_in_editor=dc-welcome.png)
 
 **What opens:**
 - **Editor**: Friendly welcome guide (tells you what to do)
