@@ -168,7 +168,7 @@ def ensure_gcloud_auth(project_id):
             ["gcloud", "config", "set", "project", project_id],
             capture_output=True,
             check=True,
-            timeout=10
+            timeout=300
         )
         
         # Get a fresh access token for Terraform
@@ -176,7 +176,7 @@ def ensure_gcloud_auth(project_id):
             ["gcloud", "auth", "print-access-token"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=300
         )
         
         if result.returncode == 0 and result.stdout.strip():
@@ -214,7 +214,7 @@ def check_gcloud_auth():
             ["gcloud", "auth", "print-access-token"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=300
         )
         
         # If we got a token successfully, we're authenticated
@@ -300,7 +300,7 @@ def verify_project_access(project_id):
             capture_output=True,
             text=True,
             check=True,
-            timeout=10
+            timeout=300
         )
         return True
     except Exception:
